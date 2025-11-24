@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Belajar C: Inventaris Gudang</title>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #e2e8f0;
+            --code-bg: #0d1117;
+            --accent: #10b981;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Layout */
+        .container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Left Panel: Tutorial & Code */
+        .tutorial-panel {
+            width: 40%;
+            padding: 2rem;
+            overflow-y: auto;
+            border-right: 1px solid #334155;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .step-header {
+            margin-bottom: 1rem;
+        }
+
+        .step-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .step-desc {
+            line-height: 1.6;
+            color: #94a3b8;
+            margin-bottom: 1.5rem;
+        }
+
+        .code-block {
+            background-color: var(--code-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+            border-left: 4px solid var(--accent);
+            overflow-x: auto;
+            white-space: pre-wrap;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .keywords { color: #ff7b72; }
+        .types { color: #79c0ff; }
+        .functions { color: #d2a8ff; }
+        .strings { color: #a5d6ff; }
+
+        .nav-buttons {
+            margin-top: auto;
+            display: flex;
+            gap: 1rem;
+            padding-top: 2rem;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .btn-next { background-color: var(--primary); color: white; }
+        .btn-prev { background-color: #334155; color: white; }
+        .btn-next:hover { background-color: #2563eb; }
+
+        /* Right Panel: Visualization */
+        .visual-panel {
+            width: 60%;
+            background-color: #111827;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-image: radial-gradient(#1f2937 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .visual-container {
+            width: 80%;
+            height: 60%;
+            border: 2px dashed #374151;
+            border-radius: 12px;
+            position: relative;
+            padding: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-content: flex-start;
+            overflow: hidden;
+        }
+
+        .visual-label {
+            position: absolute;
+            top: -30px;
+            left: 0;
+            background: var(--card-bg);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            border: 1px solid #374151;
+        }
+
+        /* Animation Elements */
+        .memory-box {
+            width: 120px;
+            height: 140px;
+            background: var(--card-bg);
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        }
+
+        .memory-box.highlight {
+            border-color: var(--accent);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .memory-field {
+            font-size: 0.75rem;
+            background: #0f172a;
+            padding: 4px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .field-label { color: #64748b; }
+        .field-val { color: var(--accent); font-weight: bold; }
+
+        @keyframes popIn {
+            from { transform: scale(0); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .console-output {
+            width: 80%;
+            height: 20%;
+            background: black;
+            border-radius: 6px;
+            margin-top: 20px;
+            padding: 10px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.85rem;
+            color: #10b981;
+            overflow-y: auto;
+            border: 1px solid #333;
+        }
+
+        .typing::after {
+            content: '|';
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink { 50% { opacity: 0; } }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="tutorial-panel">
+        <div class="step-header">
+            <div style="font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Tutorial C Interaktif</div>
+            <div id="title" class="step-title">Pengenalan</div>
+        </div>
+        
+        <div id="description" class="step-desc">
+            Selamat datang! Kita akan belajar membuat program Inventaris Gudang menggunakan Bahasa C. 
+            Kunci utamanya adalah menggunakan <b>Struct</b> untuk mengelompokkan data.
+        </div>
+
+        <div id="code-display" class="code-block">
+            // Klik "Lanjut" untuk memulai coding!
+        </div>
+
+        <div class="nav-buttons">
+            <button id="btn-prev" class="btn-prev" onclick="prevStep()" disabled>Kembali</button>
+            <button id="btn-next" class="btn-next" onclick="nextStep()">Lanjut</button>
+        </div>
+    </div>
+
+    <div class="visual-panel">
+        <div class="visual-container" id="visual-container">
+            <div class="visual-label">Visualisasi Memori (RAM)</div>
+            </div>
+        <div class="console-output" id="console-output">
+            <span class="typing">_</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- DATA MATERI ---
+    const steps = [
+        {
+            title: "1. Konsep: Kenapa butuh Struct?",
+            desc: "Bayangkan sebuah gudang. Satu barang tidak hanya punya nama. Dia punya Harga dan Stok. Daripada membuat variabel terpisah (nama1, harga1, stok1), kita 'bungkus' jadi satu paket bernama <b>Struct</b>.",
+            code: `// Tanpa Struct (Ribet)
+char nama1[50];
+int harga1;
+int stok1;
+
+// Dengan Struct (Rapi)
+typedef struct {
+    char nama[50];
+    int harga;
+    int stok;
+} Barang;`,
+            action: () => {
+                clearVisual();
+                createBox("Barang", "Nama: ?", "Harga: ?", "Stok: ?");
+                logConsole("Mendefinisikan struct Barang...");
+            }
+        },
+        {
+            title: "2. Dua Struct Utama",
+            desc: "Sesuai request, kita hanya pakai 2 Struct. <br>1. <b>Barang</b>: Untuk data satuan.<br>2. <b>Gudang</b>: Untuk menampung BANYAK barang (Array) dan menghitung jumlahnya.",
+            code: `typedef struct {
+    char nama[50];
+    int harga;
+    int stok;
+} Barang;
+
+typedef struct {
+    Barang daftar[100]; // Array of Struct
+    int jumlah;         // Total barang saat ini
+} Inventaris;`,
+            action: () => {
+                clearVisual();
+                const container = document.getElementById('visual-container');
+                container.innerHTML += `<div style="position:absolute; bottom:10px; right:10px; color:gray;">Struct Inventaris (Wadah)</div>`;
+                logConsole("Struct Inventaris siap menampung hingga 100 barang.");
+            }
+        },
+        {
+            title: "3. Fitur: Tambah Barang",
+            desc: "Saat menambah barang, kita mengisi data ke dalam array `daftar` pada indeks tertentu, lalu menaikkan variabel `jumlah`.",
+            code: `void tambahBarang(Inventaris *g, char *n, int h, int s) {
+    // Masukkan data ke array index ke-[jumlah]
+    strcpy(g->daftar[g->jumlah].nama, n);
+    g->daftar[g->jumlah].harga = h;
+    g->daftar[g->jumlah].stok = s;
+    
+    // Tambah counter jumlah
+    g->jumlah++;
+}`,
+            action: () => {
+                clearVisual();
+                createBox("Index [0]", "Laptop", "5jt", "10");
+                logConsole("Menambahkan: Laptop...");
+                setTimeout(() => logConsole("Data tersimpan di Index 0. Jumlah = 1"), 800);
+            }
+        },
+        {
+            title: "4. Visualisasi: Menambah Lebih Banyak",
+            desc: "Mari kita lihat apa yang terjadi di memori jika kita memanggil fungsi `tambahBarang` berkali-kali.",
+            code: `// Di dalam main()
+tambahBarang(&gudang, "Mouse", 150000, 50);
+tambahBarang(&gudang, "Keyboard", 300000, 20);`,
+            action: () => {
+                clearVisual();
+                createBox("Index [0]", "Laptop", "5jt", "10");
+                setTimeout(() => {
+                    createBox("Index [1]", "Mouse", "150rb", "50");
+                    logConsole("Menambah Mouse...");
+                }, 500);
+                setTimeout(() => {
+                    createBox("Index [2]", "Keyboard", "300rb", "20");
+                    logConsole("Menambah Keyboard...");
+                }, 1200);
+            }
+        },
+        {
+            title: "5. Fitur: Cari Barang (Search)",
+            desc: "Untuk mencari, kita melakukan <b>Looping</b> (perulangan). Kita cek satu per satu: Apakah nama barang di index ini sama dengan yang dicari?",
+            code: `void cariBarang(Inventaris g, char *cari) {
+    for(int i=0; i < g.jumlah; i++) {
+        if(strcmp(g.daftar[i].nama, cari) == 0) {
+            printf("Ketemu di index %d!", i);
+            return;
+        }
+    }
+    printf("Barang tidak ada.");
+}`,
+            action: () => {
+                clearVisual();
+                // Setup data
+                createBox("Index [0]", "Laptop", "5jt", "10");
+                createBox("Index [1]", "Mouse", "150rb", "50");
+                createBox("Index [2]", "Keyboard", "300rb", "20");
+                
+                logConsole("Mencari: 'Mouse'...");
+                
+                // Animation simulation
+                const boxes = document.querySelectorAll('.memory-box');
+                
+                setTimeout(() => {
+                    boxes[0].style.borderColor = 'red'; // Check 1
+                    logConsole("Cek Index 0: Laptop != Mouse");
+                }, 800);
+                
+                setTimeout(() => {
+                    boxes[0].style.borderColor = '#475569';
+                    boxes[1].style.borderColor = '#10b981'; // Check 2 Match
+                    boxes[1].style.boxShadow = '0 0 20px #10b981';
+                    logConsole("Cek Index 1: Mouse == Mouse (KETEMU!)");
+                }, 2000);
+            }
+        },
+        {
+            title: "6. Fitur: Update Stok",
+            desc: "Konsepnya sama dengan Cari. Temukan dulu barangnya, lalu ubah nilai variabel `stok` nya.",
+            code: `// Misal ketemu di index 'idx'
+g->daftar[idx].stok = stokBaru;
+printf("Stok berhasil diupdate!");`,
+            action: () => {
+                clearVisual();
+                createBox("Index [0]", "Laptop", "5jt", "10");
+                const box = document.querySelector('.memory-box');
+                
+                logConsole("Update Stok Laptop jadi 99...");
+                
+                setTimeout(() => {
+                    box.classList.add('highlight');
+                    // Update DOM text manually for effect
+                    box.children[2].innerHTML = `<span class="field-label">Stok</span><span class="field-val" style="color:yellow">99</span>`;
+                    logConsole("Nilai di memori berubah: 10 -> 99");
+                }, 1000);
+            }
+        },
+        {
+            title: "7. Fitur: Hapus Barang (Shift)",
+            desc: "Ini bagian tersulit (Algorithm). Jika menghapus barang di tengah (misal 'B'), barang di kanannya ('C') harus <b>digeser ke kiri</b> untuk mengisi lubang.",
+            code: `// Hapus index 'i'
+for(int j = i; j < g->jumlah - 1; j++) {
+    // Timpa barang saat ini dengan barang kanannya
+    g->daftar[j] = g->daftar[j+1]; 
+}
+g->jumlah--; // Kurangi total barang`,
+            action: () => {
+                clearVisual();
+                createBox("A [0]", "Item A", "-", "-"); // 0
+                createBox("B [1]", "Item B", "HAPUS", "-"); // 1
+                createBox("C [2]", "Item C", "-", "-"); // 2
+
+                logConsole("Menghapus Index 1 (Item B)...");
+
+                const boxes = document.querySelectorAll('.memory-box');
+                
+                // Step 1: Mark deletion
+                setTimeout(() => {
+                    boxes[1].style.opacity = '0.3';
+                    logConsole("Item B dihapus...");
+                }, 1000);
+
+                // Step 2: Shift
+                setTimeout(() => {
+                    boxes[1].innerHTML = boxes[2].innerHTML; // Copy content C to B position
+                    boxes[1].style.opacity = '1';
+                    boxes[1].querySelector('.field-val').innerText = "Item C"; // Hack text
+                    boxes[0].querySelector('.field-val').innerText = "Item A"; 
+                    
+                    boxes[2].style.transform = "scale(0)"; // Hide old C
+                    logConsole("Item C geser ke kiri mengisi posisi 1.");
+                }, 2500);
+            }
+        },
+        {
+            title: "8. Full Source Code",
+            desc: "Kamu sudah paham konsepnya! Ini adalah kode lengkap yang bisa dicopy ke Compiler C (seperti DevC++ atau VS Code).",
+            code: `#include <stdio.h>
+#include <string.h>
+
+typedef struct {
+    char nama[50];
+    int harga, stok;
+} Barang;
+
+typedef struct {
+    Barang daftar[100];
+    int jumlah;
+} Inventaris;
+
+void tambah(Inventaris *g) {
+    printf("Nama: "); scanf("%s", g->daftar[g->jumlah].nama);
+    printf("Harga: "); scanf("%d", &g->daftar[g->jumlah].harga);
+    printf("Stok: "); scanf("%d", &g->daftar[g->jumlah].stok);
+    g->jumlah++;
+}
+
+void tampil(Inventaris g) {
+    for(int i=0; i<g.jumlah; i++) {
+        printf("%d. %s | Rp%d | Stok: %d\n", 
+          i+1, g.daftar[i].nama, g.daftar[i].harga, g.daftar[i].stok);
+    }
+}
+
+int main() {
+    Inventaris gudang = { .jumlah = 0 };
+    int menu;
+    // ... loop while(menu != 0) ...
+    return 0;
+}`,
+            action: () => {
+                clearVisual();
+                logConsole("Siap untuk dicompile!");
+                const container = document.getElementById('visual-container');
+                container.innerHTML = `<div style="text-align:center; width:100%;">
+                    <h3 style="color:#10b981">Selamat!</h3>
+                    <p>Kamu siap mengajarkan temanmu.</p>
+                </div>`;
+            }
+        }
+    ];
+
+    // --- LOGIC ---
+    let currentStep = 0;
+
+    function updateUI() {
+        const step = steps[currentStep];
+        document.getElementById('title').innerText = step.title;
+        document.getElementById('description').innerHTML = step.desc;
+        
+        // Syntax Highlighting Simulation (Simple regex replace)
+        let highlightedCode = step.code
+            .replace(/(int|char|void|struct|typedef|return)/g, '<span class="keywords">$1</span>')
+            .replace(/(Barang|Inventaris)/g, '<span class="types">$1</span>')
+            .replace(/(printf|scanf|strcpy|strcmp)/g, '<span class="functions">$1</span>')
+            .replace(/(".*?")/g, '<span class="strings">$1</span>');
+            
+        document.getElementById('code-display').innerHTML = highlightedCode;
+
+        // Button States
+        document.getElementById('btn-prev').disabled = currentStep === 0;
+        document.getElementById('btn-next').innerText = currentStep === steps.length - 1 ? "Selesai" : "Lanjut";
+
+        // Run Visual Action
+        if(step.action) step.action();
+    }
+
+    function nextStep() {
+        if (currentStep < steps.length - 1) {
+            currentStep++;
+            updateUI();
+        }
+    }
+
+    function prevStep() {
+        if (currentStep > 0) {
+            currentStep--;
+            updateUI();
+        }
+    }
+
+    // --- VISUALIZATION TOOLS ---
+    function clearVisual() {
+        const container = document.getElementById('visual-container');
+        container.innerHTML = '<div class="visual-label">Visualisasi Memori (RAM)</div>';
+        document.getElementById('console-output').innerHTML = '<span class="typing">_</span>';
+    }
+
+    function createBox(title, name, price, stock) {
+        const container = document.getElementById('visual-container');
+        const box = document.createElement('div');
+        box.className = 'memory-box';
+        box.innerHTML = `
+            <div style="font-weight:bold; font-size:0.8rem; border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:5px;">${title}</div>
+            <div class="memory-field"><span class="field-label">Nama</span><span class="field-val">${name}</span></div>
+            <div class="memory-field"><span class="field-label">Harga</span><span class="field-val">${price}</span></div>
+            <div class="memory-field"><span class="field-label">Stok</span><span class="field-val">${stock}</span></div>
+        `;
+        container.appendChild(box);
+    }
+
+    function logConsole(text) {
+        const consoleDiv = document.getElementById('console-output');
+        const newLog = document.createElement('div');
+        newLog.innerText = "> " + text;
+        consoleDiv.insertBefore(newLog, consoleDiv.firstChild);
+    }
+
+    // Init
+    updateUI();
+
+</script>
+
+</body>
+</html>
