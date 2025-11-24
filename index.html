@@ -3,20 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Belajar C: Dari Nol ke Struct</title>
+    <title>Master Class: Struktur Data C</title>
     <style>
         :root {
             --bg: #0f172a;
             --sidebar: #1e293b;
             --text-main: #e2e8f0;
-            --text-muted: #94a3b8;
-            --accent: #3b82f6;
+            --accent: #3b82f6; /* Biru terang */
             --code-bg: #0d1117;
-            --success: #10b981;
+            --success: #10b981; /* Hijau */
+            --warning: #f59e0b; /* Kuning */
+            --danger: #ef4444; /* Merah */
         }
 
         body {
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', Roboto, sans-serif;
             background: var(--bg);
             color: var(--text-main);
             margin: 0;
@@ -25,291 +26,360 @@
             overflow: hidden;
         }
 
-        /* KIRI: Panel Belajarrr  */
+        /* --- KIRI: MATERI --- */
         .left-panel {
             width: 40%;
-            padding: 30px;
-            background: var(--sidebar);
             display: flex;
             flex-direction: column;
             border-right: 1px solid #334155;
+            background: var(--sidebar);
+        }
+
+        .content-scroll {
+            padding: 30px;
             overflow-y: auto;
+            flex-grow: 1;
         }
 
-        h1 { color: var(--accent); margin-top: 0; font-size: 1.8rem; }
-        p { line-height: 1.6; color: var(--text-muted); }
+        h1 { color: var(--accent); font-size: 1.5rem; margin-top: 0; }
+        .step-indicator { font-size: 0.8rem; text-transform: uppercase; color: #64748b; margin-bottom: 5px; letter-spacing: 1px; }
+        p { line-height: 1.6; color: #cbd5e1; }
 
-        .progress-bar {
-            height: 4px;
-            background: #334155;
-            margin-bottom: 20px;
-            border-radius: 2px;
-            overflow: hidden;
-        }
-        .progress-fill {
-            height: 100%;
-            background: var(--accent);
-            width: 0%;
-            transition: width 0.3s;
-        }
-
-        /* Area Kode */
         .code-box {
             background: var(--code-bg);
             padding: 15px;
             border-radius: 8px;
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 0.9rem;
-            white-space: pre-wrap;
+            font-family: 'Consolas', monospace;
+            font-size: 0.85rem;
             border-left: 4px solid var(--accent);
             margin: 20px 0;
+            white-space: pre-wrap;
             overflow-x: auto;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
         }
-        
-        /* Syntax Colors (Manual classes to avoid bugs) */
-        .kwd { color: #ff7b72; } /* Keyword: int, void */
-        .typ { color: #79c0ff; } /* Type: struct */
-        .str { color: #a5d6ff; } /* String */
-        .fun { color: #d2a8ff; } /* Function */
-        .cmt { color: #8b949e; font-style: italic; } /* Comment */
 
-        .btn-container { margin-top: auto; display: flex; gap: 10px; }
+        /* Manual Highlighting Classes */
+        .kwd { color: #ff7b72; font-weight: bold; } /* int, void */
+        .typ { color: #79c0ff; font-weight: bold; } /* struct names */
+        .str { color: #a5d6ff; } /* "string" */
+        .fun { color: #d2a8ff; } /* functions */
+        .cmt { color: #8b949e; font-style: italic; } /* comments */
+        .num { color: #f59e0b; } /* numbers */
+
+        .controls {
+            padding: 20px;
+            border-top: 1px solid #334155;
+            display: flex;
+            gap: 10px;
+            background: #151e2e;
+        }
+
         button {
-            padding: 12px 24px;
+            flex: 1;
+            padding: 12px;
             border: none;
             border-radius: 6px;
             font-weight: bold;
             cursor: pointer;
             transition: 0.2s;
         }
-        .btn-next { background: var(--accent); color: white; flex: 1; }
-        .btn-next:hover { background: #2563eb; }
         .btn-prev { background: #334155; color: white; }
+        .btn-next { background: var(--accent); color: white; }
+        .btn-next:hover { background: #2563eb; }
 
-        /* KANAN: Visualisasi */
+        /* --- KANAN: VISUALISASI --- */
         .right-panel {
             width: 60%;
-            background: var(--bg);
             position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
             background-image: radial-gradient(#334155 1px, transparent 1px);
-            background-size: 30px 30px;
+            background-size: 25px 25px;
+            display: flex;
+            flex-direction: column;
         }
 
         .visual-stage {
-            width: 80%;
-            height: 60%;
+            flex-grow: 1;
             position: relative;
-        }
-
-        /* Elemen Visualisasi */
-        .var-box {
-            background: #eab308;
-            color: #000;
-            padding: 10px;
-            border-radius: 4px;
-            font-weight: bold;
-            display: inline-block;
-            margin: 5px;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            transition: all 0.5s ease;
-            position: absolute;
-        }
-
-        .struct-container {
-            border: 2px dashed #eab308;
-            background: rgba(234, 179, 8, 0.1);
-            border-radius: 8px;
-            padding: 20px;
-            position: absolute;
-            transition: all 0.5s;
-        }
-
-        .array-slot {
-            width: 100px;
-            height: 120px;
-            border: 1px solid #475569;
-            background: #1e293b;
-            display: inline-flex;
-            flex-direction: column;
+            overflow: hidden;
+            display: flex;
             align-items: center;
             justify-content: center;
-            margin: 5px;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            color: #64748b;
-        }
-        
-        .array-slot.filled {
-            border-color: var(--success);
-            background: #064e3b;
-            color: white;
         }
 
-        .tooltip {
-            background: rgba(0,0,0,0.8);
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            margin-bottom: 5px;
+        /* Terminal Output Box */
+        .terminal-box {
+            height: 150px;
+            background: #000;
+            border-top: 2px solid #334155;
+            padding: 15px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.9rem;
+            color: #10b981;
+            overflow-y: auto;
         }
+        .terminal-title {
+            color: #64748b; font-size: 0.7rem; margin-bottom: 5px; border-bottom: 1px solid #333;
+        }
+
+        /* --- ELEMEN VISUALISASI --- */
+        
+        /* 1. Variabel Acak */
+        .var-scatter {
+            background: #eab308; color: black; padding: 8px 15px;
+            border-radius: 4px; font-weight: bold; position: absolute;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        /* 2. Struct Box */
+        .struct-box {
+            border: 2px dashed #eab308;
+            background: rgba(234, 179, 8, 0.1);
+            padding: 15px; border-radius: 10px;
+            display: inline-flex; flex-direction: column; gap: 5px;
+            position: relative; min-width: 120px;
+            transition: all 0.5s ease;
+        }
+        .struct-label {
+            position: absolute; top: -12px; left: 10px; background: #eab308;
+            color: black; font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; font-weight: bold;
+        }
+
+        /* 3. Array Slots */
+        .array-container {
+            display: flex; gap: 10px; align-items: flex-end;
+        }
+        .array-slot {
+            width: 100px; height: 120px;
+            border: 2px solid #475569;
+            background: #1e293b;
+            border-radius: 8px;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            font-size: 0.8rem; color: #64748b;
+            position: relative;
+            transition: all 0.3s;
+        }
+        .array-index {
+            position: absolute; bottom: -25px; color: #94a3b8; font-family: monospace;
+        }
+        .item-card {
+            width: 85%; height: 70%;
+            background: var(--success);
+            color: white;
+            border-radius: 5px;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Animasi Khusus */
+        @keyframes popIn {
+            from { transform: scale(0); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes slideLeft {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(-110px); }
+            100% { transform: translateX(0); }
+        }
+        .anim-slide { animation: slideLeft 2s infinite; }
+
+        .pointer-arrow {
+            position: absolute; top: -40px; left: 50%; transform: translateX(-50%);
+            color: var(--accent); font-size: 2rem; animation: bounce 1s infinite;
+        }
+        @keyframes bounce { 0%, 100% {transform: translate(-50%, 0);} 50% {transform: translate(-50%, -10px);} }
 
     </style>
 </head>
 <body>
 
-<div class="left-panel">
-    <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
-    <h1 id="title">Topik</h1>
-    <div id="content">Deskripsi</div>
-    <div id="code-area" class="code-box"></div>
-    
-    <div class="btn-container">
-        <button class="btn-prev" onclick="changeStep(-1)">Kembali</button>
-        <button class="btn-next" onclick="changeStep(1)">Lanjut</button>
-    </div>
-</div>
-
-<div class="right-panel">
-    <div style="position: absolute; top: 20px; color: #64748b; font-weight: bold;">VISUALISASI LOGIKA</div>
-    <div id="visual-stage" class="visual-stage">
+    <div class="left-panel">
+        <div class="content-scroll">
+            <div class="step-indicator">Langkah <span id="step-num">1</span> dari <span id="step-total">8</span></div>
+            <h1 id="title">Judul Materi</h1>
+            <div id="desc">Deskripsi materi akan muncul di sini.</div>
+            <div id="code-area" class="code-box"></div>
         </div>
-</div>
+        <div class="controls">
+            <button class="btn-prev" onclick="changeStep(-1)">Kembali</button>
+            <button class="btn-next" onclick="changeStep(1)">Lanjut</button>
+        </div>
+    </div>
+
+    <div class="right-panel">
+        <div class="visual-stage" id="visual-stage">
+            </div>
+        <div class="terminal-box">
+            <div class="terminal-title">TERMINAL OUTPUT</div>
+            <div id="terminal-content">>_</div>
+        </div>
+    </div>
 
 <script>
-    // --- DATABASE MATERI (Manual HTML coloring untuk mencegah bug) ---
+    // --- DATABASE MATERI LENGKAP ---
     const steps = [
         {
-            title: "1. Masalah Variabel Biasa",
-            desc: "Bayangkan kamu mau mencatat data barang. Kalau cuma pakai variabel biasa (`char`, `int`), datanya akan <b>berserakan</b>. <br><br>Jika ada 1 barang, butuh 3 variabel. Kalau ada 100 barang? Kamu harus buat 300 variabel! Itu mustahil dikelola.",
-            code: `<span class="kwd">char</span> nama1[50] = <span class="str">"Beras"</span>;
-<span class="kwd">int</span> harga1 = <span class="kwd">12000</span>;
-<span class="kwd">int</span> stok1 = <span class="kwd">50</span>;
+            title: "1. Masalah: Data Berantakan",
+            desc: "Kalau kita mau simpan data Gudang (Nama, Harga, Stok) pakai variabel biasa, datanya bakal mencar-mencar. Bayangkan kalau ada 100 barang, kita butuh 300 variabel! Susah diatur.",
+            code: `<span class="cmt">// Cara Salah (Tanpa Struct)</span>
+<span class="kwd">char</span> namaA[50] = <span class="str">"Laptop"</span>;
+<span class="kwd">int</span> hargaA = <span class="num">5000000</span>;
+<span class="kwd">int</span> stokA = <span class="num">10</span>;
 
-<span class="cmt">// Kalau mau nambah barang lagi? Ribet!</span>
-<span class="kwd">char</span> nama2[50]...
-<span class="kwd">int</span> harga2...`,
-            draw: () => {
-                return `
-                <div class="var-box" style="top:20%; left:20%">Nama: Beras</div>
-                <div class="var-box" style="top:30%; left:50%">Harga: 12000</div>
-                <div class="var-box" style="top:50%; left:30%">Stok: 50</div>
-                <div style="position:absolute; top:65%; width:100%; text-align:center; color:red">Data Terpisah-pisah (Rawan Hilang)</div>
-                `;
+<span class="kwd">char</span> namaB[50] = <span class="str">"Mouse"</span>;
+<span class="cmt">// Pusing kan kalau banyak?</span>`,
+            setup: () => {
+                setVisual(`
+                    <div class="var-scatter" style="top:20%; left:20%">Laptop</div>
+                    <div class="var-scatter" style="top:50%; left:60%">5.000.000</div>
+                    <div class="var-scatter" style="top:30%; left:40%">Stok: 10</div>
+                    <div class="var-scatter" style="top:60%; left:10%; background:#94a3b8">Mouse</div>
+                    <div class="var-scatter" style="top:10%; left:70%; background:#94a3b8">150.000</div>
+                `);
+                setTerminal("Error: Code too messy to maintain...");
             }
         },
         {
-            title: "2. Solusi: Struct (Bungkus)",
-            desc: "Solusinya adalah <b>STRUCT</b>. <br>Anggap Struct itu seperti <b>Kardus</b>. Kita ambil variabel nama, harga, dan stok yang berserakan tadi, lalu kita masukkan ke dalam satu kardus berlabel 'Barang'.<br><br>Sekarang, kemana-mana kita bawa 1 kardus, isinya sudah lengkap 3 data.",
+            title: "2. Solusi: Struct (Pengelompokan)",
+            desc: "Kita gunakan <b>STRUCT</b> untuk membungkus 3 data tadi jadi satu paket bernama `Barang`.<br><br>Sekarang, data Nama, Harga, dan Stok nempel terus kayak paket kiriman.",
             code: `<span class="kwd">typedef struct</span> {
     <span class="kwd">char</span> nama[50];
     <span class="kwd">int</span> harga;
     <span class="kwd">int</span> stok;
 } <span class="typ">Barang</span>;
 
-<span class="cmt">// Sekarang kita punya tipe data baru bernama 'Barang'</span>`,
-            draw: () => {
-                return `
-                <div class="struct-container" style="top:20%; left:30%; width:200px; height:200px;">
-                    <div style="background:orange; color:black; padding:2px 10px; position:absolute; top:-15px; left:10px; font-weight:bold;">STRUCT BARANG</div>
-                    <div class="var-box" style="position:relative; margin:10px auto; display:block;">Nama</div>
-                    <div class="var-box" style="position:relative; margin:10px auto; display:block;">Harga</div>
-                    <div class="var-box" style="position:relative; margin:10px auto; display:block;">Stok</div>
-                </div>
-                <div style="position:absolute; bottom:10%; width:100%; text-align:center; color:#10b981">Data terbungkus rapi!</div>
-                `;
+<span class="cmt">// Sekarang kita punya tipe data baru: Barang</span>`,
+            setup: () => {
+                setVisual(`
+                    <div class="struct-box" style="transform: scale(1.5);">
+                        <div class="struct-label">Struct Barang</div>
+                        <div style="background:#1e293b; padding:5px; border-radius:3px; color:#cbd5e1">char nama[50]</div>
+                        <div style="background:#1e293b; padding:5px; border-radius:3px; color:#cbd5e1">int harga</div>
+                        <div style="background:#1e293b; padding:5px; border-radius:3px; color:#cbd5e1">int stok</div>
+                    </div>
+                `);
+                setTerminal("Struct 'Barang' defined successfully.");
             }
         },
         {
-            title: "3. Gudang (Array of Struct)",
-            desc: "Kita mau membuat inventaris gudang, artinya kita butuh menampung <b>BANYAK</b> 'Kardus Barang' tadi.<br><br>Kita buat Struct kedua bernama `Inventaris`. Isinya adalah rak (Array) yang bisa menampung banyak `Barang`.",
+            title: "3. Membuat Gudang (Array of Struct)",
+            desc: "Gudang itu isinya banyak barang. Jadi kita buat Struct kedua bernama `Inventaris`.<br>Isinya:<br>1. <b>Array</b>: Rak untuk simpan banyak `Barang`.<br>2. <b>Jumlah</b>: Penghitung isi gudang.",
             code: `<span class="kwd">typedef struct</span> {
-    <span class="typ">Barang</span> daftar[100];  <span class="cmt">// Rak muat 100 barang</span>
-    <span class="kwd">int</span> jumlah;          <span class="cmt">// Total isi saat ini</span>
-} <span class="typ">Inventaris</span>;`,
-            draw: () => {
-                return `
-                <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:50px;">
-                    <div class="array-slot">Index 0<br>(Kosong)</div>
-                    <div class="array-slot">Index 1<br>(Kosong)</div>
-                    <div class="array-slot">Index 2<br>(Kosong)</div>
-                    <div class="array-slot">...</div>
-                </div>
-                <div style="text-align:center; margin-top:20px; color:#94a3b8">Array "daftar[100]" siap diisi</div>
-                `;
-            }
-        },
-        {
-            title: "4. Fungsi Tambah (Pointer)",
-            desc: "Nah, ini bagian penting. Saat kita membuat fungsi `tambahBarang`, kita harus mengirimkan <b>Alamat Memori</b> gudang (pakai `&` dan `*`).<br><br>Kenapa? Kalau tidak pakai alamat (pointer), program cuma akan mencatat di buku catatan tiruan, bukan buku gudang yang asli.",
-            code: `<span class="kwd">void</span> tambah(<span class="typ">Inventaris</span> *g) {
-    <span class="cmt">// g-> artinya kita akses langsung ke gudang asli</span>
-    
-    <span class="cmt">// Isi data ke index saat ini (g->jumlah)</span>
-    g->daftar[g->jumlah].harga = 15000;
-    
-    <span class="cmt">// Jangan lupa geser ke slot berikutnya</span>
-    g->jumlah++; 
-}`,
-            draw: () => {
-                return `
-                <div style="position:absolute; left:10%; top:30%; padding:20px; border:2px solid white; border-radius:10px;">
-                    GUDANG ASLI<br>
-                    <span style="color:yellow">Total: 0</span>
-                </div>
-                
-                <div style="position:absolute; right:10%; top:10%; padding:20px; border:2px dashed cyan; border-radius:10px;">
-                    FUNGSI TAMBAH<br>
-                    <small>Sedang bekerja...</small>
-                </div>
+    <span class="typ">Barang</span> daftar[100]; <span class="cmt">// Rak muat 100 barang</span>
+    <span class="kwd">int</span> jum;           <span class="cmt">// Counter isi</span>
+} <span class="typ">Inventaris</span>;
 
-                <svg width="100%" height="100%" style="position:absolute; top:0; left:0; pointer-events:none;">
-                    <line x1="70%" y1="20%" x2="25%" y2="40%" stroke="cyan" stroke-width="4" marker-end="url(#arrow)" />
-                    <defs>
-                        <marker id="arrow" markerWidth="10" markerHeight="10" refX="0" refY="3" orient="auto">
-                        <path d="M0,0 L0,6 L9,3 z" fill="cyan" />
-                        </marker>
-                    </defs>
-                </svg>
-                <div style="position:absolute; bottom:20%; width:100%; text-align:center;">Pointer (*) membuat fungsi bisa mengedit Gudang Asli</div>
-                `;
+<span class="kwd">int</span> main() {
+    <span class="typ">Inventaris</span> g = { .jum = <span class="num">0</span> };
+} `,
+            setup: () => {
+                setVisual(`
+                    <div class="array-container">
+                        <div class="array-slot"><div class="array-index">index[0]</div>KOSONG</div>
+                        <div class="array-slot"><div class="array-index">index[1]</div>KOSONG</div>
+                        <div class="array-slot"><div class="array-index">index[2]</div>KOSONG</div>
+                        <div style="align-self:center; font-size:2rem; color:#475569">...</div>
+                    </div>
+                    <div style="margin-top:40px; color:#eab308; font-weight:bold;">Variabel jum = 0</div>
+                `);
+                setTerminal("Memori dialokasikan: Array daftar[100] siap.");
             }
         },
         {
-            title: "5. Logika Hapus (Geser)",
-            desc: "Menghapus data di Array itu 'tricky'. Kita tidak bisa membiarkan lubang kosong di tengah rak.<br><br>Jika Barang B dihapus, maka Barang C harus <b>digeser ke kiri</b> untuk menutupi lubang bekas B.",
-            code: `<span class="cmt">// Misal hapus index ke-1</span>
-<span class="kwd">for</span>(<span class="kwd">int</span> i = index; i < total-1; i++) {
-    <span class="cmt">// Timpa barang sekarang dengan barang kanannya</span>
-    g->daftar[i] = g->daftar[i+1];
-}
-g->jumlah--;`,
-            draw: () => {
-                return `
-                <div style="display:flex; gap:10px; justify-content:center; margin-top:100px;">
-                    <div class="array-slot filled">A [0]</div>
-                    <div class="array-slot" style="border-style:dashed; opacity:0.5;">B [1]<br>(Dihapus)</div>
-                    <div class="array-slot filled" style="animation: slideLeft 2s infinite;">C [2]</div>
-                </div>
-                <div style="text-align:center; margin-top:20px;">C harus geser ke kiri menimpa B</div>
-                <style>
-                    @keyframes slideLeft {
-                        0% { transform: translateX(0); }
-                        50% { transform: translateX(-115px); }
-                        100% { transform: translateX(0); }
-                    }
-                </style>
-                `;
+            title: "4. Fungsi Tambah (Pointer & Arrow)",
+            desc: "Saat nambah barang, kita harus pakai <b>Pointer (*)</b> agar fungsi bisa mengubah data di 'Gudang Asli'.<br><br>Kita masukkan data ke `daftar[jum]`, lalu naikkan `jum++` agar data berikutnya masuk ke slot baru.",
+            code: `<span class="kwd">void</span> tambah(<span class="typ">Inventaris</span> *g) {
+    <span class="cmt">// Isi data ke slot index ke-[jum]</span>
+    strcpy(g->daftar[g->jum].nama, <span class="str">"Laptop"</span>);
+    g->daftar[g->jum].harga = <span class="num">5000000</span>;
+    
+    <span class="cmt">// Geser counter ke kanan</span>
+    g->jum++; 
+}`,
+            setup: () => {
+                setVisual(`
+                    <div class="array-container">
+                        <div class="array-slot" style="border-color:var(--accent)">
+                            <div class="pointer-arrow">↓</div>
+                            <div class="item-card">
+                                <div>Laptop</div>
+                                <div style="font-size:0.7rem">5jt</div>
+                            </div>
+                            <div class="array-index">index[0]</div>
+                        </div>
+                        <div class="array-slot">KOSONG<div class="array-index">index[1]</div></div>
+                        <div class="array-slot">KOSONG<div class="array-index">index[2]</div></div>
+                    </div>
+                    <div style="margin-top:40px; color:#eab308;">jum berubah: 0 -> 1</div>
+                `);
+                setTerminal("> Menambahkan Barang...\n> Sukses simpan 'Laptop' di Index[0]");
             }
         },
         {
-            title: "6. Kode Lengkap",
-            desc: "Sekarang temanmu sudah paham konsepnya: Struct, Array, Pointer, dan Logika Geser. Ini kodenya.",
-            code: `<span class="kwd">#include</span> &lt;stdio.h&gt;
+            title: "5. Looping: Tampilkan Semua",
+            desc: "Gimana cara liat isinya? Kita pakai <b>Looping (For)</b>.<br>Loop berjalan dari `0` sampai `jum`. Setiap langkah, kita print isi struct di index tersebut.",
+            code: `<span class="kwd">void</span> tampil(<span class="typ">Inventaris</span> g) {
+    <span class="kwd">for</span>(<span class="kwd">int</span> i=<span class="num">0</span>; i < g.jum; i++) {
+        printf(<span class="str">"%s - Rp%d\n"</span>, 
+            g.daftar[i].nama, 
+            g.daftar[i].harga);
+    }
+}`,
+            setup: () => {
+                setVisual(`
+                    <div class="array-container">
+                        <div class="array-slot" style="box-shadow: 0 0 20px var(--accent);">
+                            <div class="item-card">Laptop</div>
+                            <div class="array-index">i=0</div>
+                        </div>
+                        <div class="array-slot" style="box-shadow: 0 0 20px var(--accent);">
+                            <div class="item-card" style="background:purple">Mouse</div>
+                            <div class="array-index">i=1</div>
+                        </div>
+                        <div class="array-slot">KOSONG</div>
+                    </div>
+                `);
+                setTerminal("> 1. Laptop - Rp5000000\n> 2. Mouse - Rp150000\n> Selesai.");
+            }
+        },
+        {
+            title: "6. Logika Hapus (Geser Kiri)",
+            desc: "Ini logika tersulit. Jika kita hapus barang di tengah (misal index 0), barang di kanannya (index 1) harus <b>DIGESER</b> ke kiri menimpa index 0.<br><br>Rumusnya: `daftar[i] = daftar[i+1]`",
+            code: `<span class="kwd">void</span> hapus(<span class="typ">Inventaris</span> *g, <span class="kwd">int</span> idx) {
+    <span class="cmt">// Loop dari index hapus sampai ujung</span>
+    <span class="kwd">for</span>(<span class="kwd">int</span> i = idx; i < g->jum - <span class="num">1</span>; i++) {
+        <span class="cmt">// Timpa barang saat ini dgn barang kanannya</span>
+        g->daftar[i] = g->daftar[i+1];
+    }
+    g->jum--; <span class="cmt">// Kurangi jumlah barang</span>
+}`,
+            setup: () => {
+                setVisual(`
+                    <div class="array-container">
+                        <div class="array-slot" style="border:2px dashed #ef4444; opacity:0.5;">
+                            <span style="color:red; font-weight:bold;">DIHAPUS</span>
+                            <div class="array-index">index[0]</div>
+                        </div>
+                        <div class="array-slot anim-slide">
+                            <div class="item-card" style="background:purple">Mouse</div>
+                            <div class="array-index">index[1]</div>
+                        </div>
+                        <div class="array-slot">KOSONG</div>
+                    </div>
+                    <div style="margin-top:20px;">Mouse (Index 1) geser ke kiri mengisi Index 0</div>
+                `);
+                setTerminal("> Menghapus Index 0...\n> Menggeser data...\n> Data berhasil dirapikan.");
+            }
+        },
+        {
+            title: "7. Full Source Code",
+            desc: "Selamat! Temanmu sekarang sudah paham logika dasarnya. Ini adalah kode lengkap yang bisa dicopy ke VS Code atau DevC++.",
+            code: `<span class="cmt">// Full Code Inventaris Sederhana</span>
+<span class="kwd">#include</span> &lt;stdio.h&gt;
 <span class="kwd">#include</span> &lt;string.h&gt;
 
 <span class="kwd">typedef struct</span> {
@@ -320,61 +390,71 @@ g->jumlah--;`,
 <span class="kwd">typedef struct</span> {
     <span class="typ">Barang</span> daftar[100];
     <span class="kwd">int</span> jum;
-} <span class="typ">Gudang</span>;
+} <span class="typ">Inventaris</span>;
 
-<span class="kwd">void</span> tambah(<span class="typ">Gudang</span> *g, <span class="kwd">char</span> *n, <span class="kwd">int</span> h, <span class="kwd">int</span> s) {
-    strcpy(g->daftar[g->jum].nama, n);
-    g->daftar[g->jum].harga = h;
-    g->daftar[g->jum].stok = s;
+<span class="kwd">void</span> tambah(<span class="typ">Inventaris</span> *g) {
+    printf(<span class="str">"Nama: "</span>); scanf(<span class="str">"%s"</span>, g->daftar[g->jum].nama);
     g->jum++;
 }
 
 <span class="kwd">int</span> main() {
-    <span class="typ">Gudang</span> g = { .jum = 0 };
-    tambah(&g, <span class="str">"Buku"</span>, 5000, 10);
-    printf(<span class="str">"Sukses!"</span>);
+    <span class="typ">Inventaris</span> g = { .jum = <span class="num">0</span> };
+    <span class="cmt">// Panggil fungsi di sini...</span>
     <span class="kwd">return</span> 0;
 }`,
-            draw: () => {
-                return `
-                <div style="display:flex; align-items:center; justify-content:center; height:100%; color:#10b981; font-size:2rem; font-weight:bold;">
-                    SIAP CODING! 🚀
-                </div>
-                `;
+            setup: () => {
+                setVisual(`
+                    <div style="text-align:center;">
+                        <div style="font-size:3rem;">🚀</div>
+                        <h2 style="color:var(--success)">SIAP CODING!</h2>
+                        <p>Konsep sudah dikuasai.</p>
+                    </div>
+                `);
+                setTerminal("> Program compiled successfully.\n> Ready to run.");
             }
         }
     ];
 
-    let currentStep = 0;
+    // --- LOGIC UTAMA ---
+    let currIdx = 0;
 
     function render() {
-        const step = steps[currentStep];
+        const step = steps[currIdx];
         
-        // Update Text
+        // Update Teks
+        document.getElementById('step-num').innerText = currIdx + 1;
+        document.getElementById('step-total').innerText = steps.length;
         document.getElementById('title').innerText = step.title;
-        document.getElementById('content').innerHTML = step.desc;
+        document.getElementById('desc').innerHTML = step.desc;
         document.getElementById('code-area').innerHTML = step.code;
-        
-        // Update Visual
-        document.getElementById('visual-stage').innerHTML = step.draw();
 
-        // Update Progress
-        const percent = ((currentStep + 1) / steps.length) * 100;
-        document.getElementById('progress').style.width = percent + "%";
+        // Jalankan Visualisasi
+        step.setup();
+    }
+
+    function setVisual(html) {
+        document.getElementById('visual-stage').innerHTML = html;
+    }
+
+    function setTerminal(text) {
+        // Efek ketik sederhana
+        const term = document.getElementById('terminal-content');
+        term.innerText = ">_";
+        setTimeout(() => {
+            term.innerText = text;
+        }, 200);
     }
 
     function changeStep(n) {
-        if (currentStep + n >= 0 && currentStep + n < steps.length) {
-            currentStep += n;
+        if (currIdx + n >= 0 && currIdx + n < steps.length) {
+            currIdx += n;
             render();
         }
     }
 
-    // Init
+    // Start
     render();
 
 </script>
-
-
 </body>
 </html>
