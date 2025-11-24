@@ -35,7 +35,7 @@
             border-right: 1px solid #334155;
             display: flex;
             flex-direction: column;
-            padding: 20px;
+            padding: 25px; /* Sedikit lebih lega */
             overflow-y: auto;
             z-index: 10;
         }
@@ -53,23 +53,34 @@
             body { flex-direction: column; }
             .left {
                 width: 100%;
-                height: 50vh; /* Setengah layar */
+                height: 55vh; /* Panel teks lebih tinggi biar muat penjelasan panjang */
                 border-right: none;
                 border-bottom: 2px solid var(--accent);
                 padding: 15px;
             }
             .right {
                 width: 100%;
-                height: 50vh;
+                height: 45vh;
             }
             h2 { font-size: 1.2rem; }
             .code-block { font-size: 0.75rem; padding: 10px; }
         }
 
         /* --- STYLING KONTEN --- */
-        h2 { color: var(--accent); margin-top: 0; margin-bottom: 10px; }
-        p { line-height: 1.5; font-size: 0.95rem; color: #cbd5e1; margin-bottom: 15px; }
+        h2 { color: var(--accent); margin-top: 0; margin-bottom: 10px; font-size: 1.5rem; }
         
+        /* Typography Penjelasan Diperbaiki */
+        p { 
+            line-height: 1.6; 
+            font-size: 1rem; 
+            color: #cbd5e1; 
+            margin-bottom: 20px; 
+            text-align: justify; /* Agar teks panjang rapi */
+        }
+        
+        /* Highlight text di dalam penjelasan */
+        strong { color: var(--yellow); }
+
         .code-block {
             background: #000;
             padding: 15px;
@@ -94,6 +105,7 @@
             margin-top: auto;
             display: flex;
             gap: 10px;
+            padding-top: 10px;
         }
         button {
             flex: 1; padding: 12px; border: none; border-radius: 6px;
@@ -112,7 +124,7 @@
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            perspective: 1000px; /* Untuk efek 3D */
+            perspective: 1000px; 
         }
 
         .terminal {
@@ -205,74 +217,70 @@
     </div>
 
 <script>
-    // --- ANIMATION ENGINE (Anti-Error) ---
+    // --- ANIMATION ENGINE (Sama Persis - Tidak Berubah) ---
     let timers = []; 
     
-    // Fungsi menunggu aman (bisa dicancel)
     function wait(fn, ms) {
         const t = setTimeout(fn, ms);
         timers.push(t);
         return t;
     }
 
-    // Fungsi loop aman
     function loop(fn, ms) {
         const t = setInterval(fn, ms);
         timers.push(t);
         return t;
     }
 
-    // Bersihkan semua animasi saat pindah slide
     function cleanup() {
         timers.forEach(t => {
             clearTimeout(t);
             clearInterval(t);
         });
         timers = [];
-        document.getElementById('stage').innerHTML = ""; // Reset canvas
+        document.getElementById('stage').innerHTML = ""; 
     }
 
-    // --- DATABASE SLIDE ---
+    // --- DATABASE SLIDE (PENJELASAN DIPERPANJANG UNTUK PEMULA) ---
     const slides = [
-        // 1-9: Materi Dasar (Sama seperti sebelumnya, tapi dioptimalkan)
         {
-            t: "1. Masalah: Data Berantakan",
-            d: "Tanpa Struct, variabel Nama, Harga, dan Stok akan <b>terpisah-pisah</b> di memori komputer.",
+            t: "1. Masalah: Data yang Berantakan",
+            d: "Coba bayangkan kamu punya toko dengan 100 barang. Kalau kita coding pakai cara biasa (variabel), kita harus membuat variabel <code>nama1</code>, <code>nama2</code>, <code>nama3</code>... sampai 100 kali! <br><br>Lihat animasi di kanan. Datanya <strong>mencar-mencar dan berserakan</strong> di memori komputer. Ini sangat rawan error, misal harga 'Buku' tertukar dengan 'Pena' karena tidak ada pengelompokan yang jelas.",
             c: `<span class="k">char</span> nama1[] = <span class="s">"Buku"</span>;\n<span class="k">int</span> harga1 = 5000;\n<span class="k">int</span> stok1 = 10;`,
             f: () => {
                 draw(`<div class="box anim-pop" style="top:20%; left:10%">Buku</div>
                       <div class="box anim-pop" style="top:50%; left:60%; animation-delay:0.2s">5000</div>
                       <div class="box anim-pop" style="top:30%; left:40%; animation-delay:0.4s">Stok: 10</div>
                       <div class="box anim-pop" style="top:70%; left:20%; border-color:red; animation-delay:0.6s">Pena</div>`);
-                term("Memori dialokasikan secara acak.");
+                term("Memori dialokasikan secara acak (Berantakan).");
             }
         },
         {
-            t: "2. Solusi: Struct (Kardus)",
-            d: "Struct membungkus data jadi satu paket. Kemana pun 'Buku' pergi, Harga dan Stok ikut.",
+            t: "2. Solusi: Struct (Bungkus Paket)",
+            d: "Nah, solusinya adalah <strong>STRUCT</strong>. Anggap Struct itu seperti sebuah <strong>Kardus Paket</strong>.<br><br>Kita ambil Nama, Harga, dan Stok tadi, lalu kita masukkan ke dalam satu kardus bernama 'Barang'. Jadi kemana pun barang itu dipindahkan, harganya dan stoknya pasti ikut menempel. Rapi kan? Di kanan kamu bisa lihat datanya sekarang terbungkus rapi dalam satu kotak.",
             c: `<span class="k">typedef struct</span> {\n  <span class="k">char</span> nama[50];\n  <span class="k">int</span> harga, stok;\n} <span class="t">Barang</span>;`,
             f: () => {
                 draw(`<div class="box anim-pop" style="width:200px; border-color:var(--accent);">
                         <div class="label" style="background:var(--accent); color:white;">STRUCT BARANG</div>
                         <div>Nama: Buku</div><div>Harga: 5000</div><div>Stok: 10</div>
                       </div>`);
-                term("Data terstruktur dalam satu blok memori.");
+                term("Data terstruktur rapi dalam satu blok memori.");
             }
         },
         {
-            t: "3. Salah: Pass by Value",
-            d: "Jika kirim struct ke fungsi TANPA pointer, komputer cuma membuat <b>FOTOKOPI</b>. Data asli tidak berubah.",
+            t: "3. Kesalahan Pemula: Pass by Value",
+            d: "Hati-hati! Jika kamu mengirim data struct ke sebuah fungsi <strong>TANPA</strong> menggunakan Pointer, komputer itu 'pelit'. <br><br>Dia tidak memberikan data aslinya, melainkan hanya memberikan <strong>FOTOKOPIANNYA</strong> (Duplikat). Lihat animasi kanan: Fungsi mengubah stok di kertas fotokopi jadi 99, tapi Barang Asli stoknya TETAP 10. Ini bug yang sering terjadi pada pemula.",
             c: `<span class="k">void</span> ubah(<span class="t">Barang</span> b) {\n  b.stok = 99; <span class="c">// Cuma ubah fotokopi</span>\n}`,
             f: () => {
                 draw(`<div class="box" style="left:10%">ASLI<br>Stok: 10</div>
                       <div class="box" style="left:60%; opacity:0.5; border-style:dashed">FOTOKOPI<br>Stok: 99</div>
                       <div style="position:absolute; font-size:2rem; left:40%">➔</div>`);
-                term("Warning: Original data not changed.");
+                term("Warning: Data asli TIDAK berubah (Hanya duplikat).");
             }
         },
         {
-            t: "4. Benar: Pass by Reference",
-            d: "Pakai <b>Pointer (*)</b> agar fungsi tau ALAMAT ASLI gudang. Kita bisa ubah data aslinya langsung.",
+            t: "4. Cara Benar: Pass by Reference",
+            d: "Solusinya? Gunakan <strong>POINTER (*)</strong>. <br><br>Pointer itu seperti kita kasih <strong>Share Location (Shareloc)</strong> ke fungsi. Kita bilang: <em>'Hei fungsi, barang aslinya ada di ALAMAT ini lho, tolong ubah ya'</em>. <br><br>Lihat panah kuning di animasi. Fungsi sekarang tau lokasi aslinya dan bisa mengubah stok ASLI menjadi 99.",
             c: `<span class="k">void</span> ubah(<span class="t">Barang</span> <span class="k">*b</span>) {\n  b->stok = 99; <span class="c">// Akses alamat & ubah</span>\n}`,
             f: () => {
                 draw(`<div class="box" id="asli" style="left:10%; border-color:var(--green)">ASLI<br>Stok: 10</div>
@@ -284,13 +292,13 @@
                 wait(() => {
                     document.getElementById('asli').innerHTML = "ASLI<br>Stok: 99";
                     document.getElementById('asli').classList.add('anim-pop');
-                    term("Success: Original data updated.");
+                    term("Success: Data asli berhasil diupdate!");
                 }, 1500);
             }
         },
         {
-            t: "5. Gudang = Array",
-            d: "Gudang menampung banyak barang. Kita pakai Array of Struct.",
+            t: "5. Gudang Butuh Rak (Array)",
+            d: "Gudang tidak mungkin cuma nyimpen 1 barang kan? Kita butuh rak yang banyak. Dalam bahasa C, Rak itu disebut <strong>ARRAY</strong>. <br><br>Kita siapkan struct baru bernama <code>Gudang</code> yang di dalamnya ada array <code>daftar[100]</code>. Artinya, kita memesan 100 slot kosong di memori untuk menampung barang-barang kita nanti.",
             c: `<span class="k">typedef struct</span> {\n  <span class="t">Barang</span> daftar[100];\n  <span class="k">int</span> jum;\n} <span class="t">Gudang</span>;`,
             f: () => {
                 draw(`<div class="array-rack anim-pop">
@@ -300,8 +308,8 @@
             }
         },
         {
-            t: "6. Manual Copy String",
-            d: "Dilarang `strcpy`! Kita pindahkan huruf satu per satu (Looping).",
+            t: "6. Tantangan Logika: Copy Manual",
+            d: "Di tugas ini, kita dilarang pakai jalan pintas (<code>strcpy</code>). Kita harus memindahkan huruf satu per satu layaknya kuli bangunan. <br><br>Lihat animasi di kanan: Kita ambil huruf 'B', masukkan. Ambil huruf 'U', masukkan. Terus berulang (looping) sampai ketemu tanda berhenti (<code>\\0</code>). Ini melatih logika <code>while loop</code> kamu.",
             c: `<span class="k">while</span>(asal[i] != <span class="s">'\\0'</span>) {\n  tujuan[i] = asal[i];\n  i++;\n}`,
             f: () => {
                 draw(`<div style="display:flex; flex-direction:column; gap:10px; align-items:center;">
@@ -330,8 +338,8 @@
             }
         },
         {
-            t: "7. Logika Tambah",
-            d: "Input User -> Salin String -> Masuk Array.",
+            t: "7. Menggabungkan Semua: Tambah Barang",
+            d: "Sekarang kita gabungkan ilmunya. Untuk menambah barang:<br>1. Minta input dari User.<br>2. Panggil Gudang pakai <strong>Pointer</strong> (biar tersimpan di gudang asli).<br>3. Gunakan logika copy manual tadi untuk memasukkan nama ke dalam Rak.<br><br>Lihat animasi: Kotak 'RAM' terbang masuk ke slot index 0.",
             c: `salin(g->daftar[jum].nama, input);\ng->jum++;`,
             f: () => {
                 draw(`<div class="box anim-pop" style="left:5%; border-color:cyan; z-index:10">INPUT<br>"RAM"</div>
@@ -343,14 +351,14 @@
                     input.style.left = "60%"; // Pindah posisi visual
                     input.style.opacity = 0; // Hilang
                     document.getElementById('slot0').innerHTML = `<div class="rack-item anim-pop">RAM</div>`;
-                    term("RAM masuk ke Index 0");
+                    term("Barang 'RAM' berhasil masuk ke Index 0.");
                 }, 1000);
             }
         },
         {
-            t: "8. Logika Hapus",
-            d: "Geser array kiri untuk menutupi lubang.",
-            c: `daftar[i] = daftar[i+1];`,
+            t: "8. Logika Hapus (Wajib Geser)",
+            d: "Menghapus barang di Array itu <em>tricky</em>. Kita tidak boleh meninggalkan lubang kosong di tengah rak. <br><br>Jika Barang A (posisi 0) dihapus, maka Barang B (posisi 1) wajib <strong>DIGESER KE KIRI</strong> untuk menutupi lubang tersebut. Lihat animasi bagaimana 'B' bergerak menimpa 'A' yang dihapus.",
+            c: `daftar[i] = daftar[i+1]; <span class="c">// Timpa kiri dgn kanan</span>`,
             f: () => {
                 draw(`<div class="array-rack">
                         <div class="rack-slot" style="border-color:red">A</div>
@@ -359,25 +367,23 @@
                 wait(() => {
                     const b = document.getElementById('itemB');
                     b.style.transform = "translateX(-75px)"; // Geser kiri visual
-                    term("Item B geser menimpa A");
+                    term("Barang B bergeser ke kiri menimpa A.");
                 }, 1000);
             }
         },
         {
-            t: "9. Modular Structure",
-            d: "Pisahkan kode jadi 3 file agar rapi.",
-            c: `File: Header.h, Logika.c, Main.c`,
+            t: "9. Modular: Jangan Menumpuk Kode",
+            d: "Programmer profesional tidak menulis semua kode di satu file panjang. Itu bikin pusing! <br><br>Kita bagi tugas menjadi 3 file terpisah. Lihat kartu-kartu yang muncul di animasi. Ada bagian <strong>Header</strong>, bagian <strong>Logika</strong>, dan bagian <strong>Main</strong>.",
+            c: `File Project:\n1. Header.h\n2. Logika.c\n3. Main.c`,
             f: () => {
                 draw(`<div class="box anim-pop" style="left:10%">Header</div>
                       <div class="box anim-pop" style="left:40%; animation-delay:0.2s">Logika</div>
                       <div class="box anim-pop" style="left:70%; animation-delay:0.4s">Main</div>`);
             }
         },
-
-        // --- 10-20 ANIMATED SLIDES ---
         {
-            t: "10. File: Header.h",
-            d: "Kamus Data. Hanya berisi definisi Struct & Janji Fungsi.",
+            t: "10. File 1: Header.h (Daftar Menu)",
+            d: "File <code>.h</code> (Header) ini ibarat <strong>Daftar Menu Restoran</strong>. <br><br>Dia hanya memberi tahu: <em>'Di sini ada Menu Nasi Goreng, Mie Goreng, dll'</em>. Dia cuma berisi definisi Struct dan nama-nama fungsi, tapi TIDAK ADA kode cara masaknya.",
             c: `<span class="k">typedef struct</span> {...};\n<span class="k">void</span> tambah();`,
             f: () => {
                 draw(`<div class="box" style="width:150px; height:180px; border-color:var(--yellow)">
@@ -386,12 +392,12 @@
                            - Struct Barang<br>- Struct Gudang<br>- void tambah();<br>- void hapus();
                         </div>
                       </div>`);
-                term("Compiler mencatat definisi struktur.");
+                term("Compiler mencatat 'Janji' fungsi.");
             }
         },
         {
-            t: "11. File: Logika.c",
-            d: "Dapur Program. Berisi semua kode rumit loop & pointer tadi.",
+            t: "11. File 2: Logika.c (Dapur)",
+            d: "Nah, file <code>.c</code> ini ibarat <strong>Dapur Restoran</strong>. <br><br>Di sinilah koki bekerja. Semua kode rumit seperti <code>while loop</code> salin string tadi, dan logika pointer ada di sini. File ini yang 'memasak' datanya.",
             c: `<span class="k">#include</span> "header.h"\n<span class="k">void</span> tambah() { ... }`,
             f: () => {
                 draw(`<div class="box anim-slide-in" style="width:150px; height:180px; border-color:var(--accent)">
@@ -405,8 +411,8 @@
             }
         },
         {
-            t: "12. File: Main.c",
-            d: "Kasir/Interface. Hanya menampilkan Menu & Pilihan User.",
+            t: "12. File 3: Main.c (Kasir)",
+            d: "Terakhir, <code>main.c</code> adalah <strong>Kasir atau Pelayan</strong>. <br><br>Tugasnya cuma menyapa user, menampilkan menu pilihan, dan meneruskan pesanan user ke dapur (Logika). File ini harus bersih dan mudah dibaca.",
             c: `<span class="k">#include</span> "header.h"\n<span class="k">int</span> main() { menu(); }`,
             f: () => {
                 draw(`<div class="box anim-pop" style="width:150px; height:180px; border-color:var(--green)">
@@ -419,8 +425,8 @@
             }
         },
         {
-            t: "13. DEMO: Start Program",
-            d: "Program dikompilasi & dijalankan. Terminal muncul.",
+            t: "13. DEMO: Menjalankan Program",
+            d: "Sekarang mari kita lihat hasil akhirnya. Saat program di-Run, fungsi <code>main()</code> akan menampilkan menu interaktif di Terminal (kotak hitam di bawah).",
             c: `Running gudang.exe...`,
             f: () => {
                 draw(`<div style="font-size:4rem;" class="anim-pop">🚀</div>`);
@@ -428,8 +434,8 @@
             }
         },
         {
-            t: "14. DEMO: Tambah (Laptop)",
-            d: "User input 'Laptop'. Data terbang masuk ke Array Index 0.",
+            t: "14. DEMO: Menambah Laptop",
+            d: "User memilih menu Tambah. Dia mengetik 'Laptop' seharga 5 Juta. <br><br>Perhatikan kotak biru di animasi. Itu adalah data yang sedang diproses oleh logika kita, lalu dimasukkan ke dalam Rak Index 0 (kotak merah).",
             c: `Menu: 3 (Tambah)\nNama: Laptop\nHarga: 5jt`,
             f: () => {
                 draw(`<div class="array-rack" style="position:absolute; bottom:20%;">
@@ -453,8 +459,8 @@
             }
         },
         {
-            t: "15. DEMO: Tambah (Mouse)",
-            d: "User tambah lagi 'Mouse'. Masuk ke Array Index 1.",
+            t: "15. DEMO: Menambah Mouse",
+            d: "User menambah barang kedua: 'Mouse'. <br><br>Karena Index 0 sudah terisi Laptop, maka Pointer otomatis mengarahkan Mouse ke slot kosong berikutnya, yaitu Index 1. <code>jum</code> sekarang bernilai 2.",
             c: `Menu: 3 (Tambah)\nNama: Mouse\nHarga: 150rb`,
             f: () => {
                 // Gambar keadaan sebelumnya
@@ -480,8 +486,8 @@
             }
         },
         {
-            t: "16. DEMO: Tampilkan Semua",
-            d: "Program melakukan Looping Array untuk mencetak isi.",
+            t: "16. DEMO: Tampilkan Semua Barang",
+            d: "Saat user memilih 'Tampil', program melakukan <strong>Looping (For Loop)</strong>. <br><br>Dia akan menunjuk satu per satu rak yang ada isinya, lalu mencetak isinya ke layar. Lihat efek cahaya putih di animasi yang berpindah dari Laptop ke Mouse.",
             c: `for(i=0; i<jum; i++) print...`,
             f: () => {
                 draw(`<div class="array-rack">
@@ -507,8 +513,8 @@
             }
         },
         {
-            t: "17. DEMO: Cari 'Mouse'",
-            d: "Looping cek string. Laptop? Bukan. Mouse? Ketemu!",
+            t: "17. DEMO: Mencari Barang",
+            d: "User mencari kata kunci 'Mouse'. <br><br>Program akan membandingkan kata kunci dengan isi rak satu per satu. <br>1. Cek Rak 0 (Laptop) -> TIDAK SAMA. <br>2. Cek Rak 1 (Mouse) -> SAMA! Ketemu.",
             c: `Menu: 1 (Cari)\nKeyword: Mouse`,
             f: () => {
                 draw(`<div class="array-rack">
@@ -540,8 +546,8 @@
             }
         },
         {
-            t: "18. DEMO: Hapus Laptop",
-            d: "Hapus Index 0. Mouse (Index 1) harus geser ke kiri.",
+            t: "18. DEMO: Menghapus Laptop",
+            d: "User ingin menghapus Laptop (Index 0). <br><br>Laptop dihapus (lihat kotak hilang). TAPI ingat logika tadi, kita tidak boleh menyisakan lubang. Maka Mouse (Index 1) otomatis <strong>digeser ke kiri</strong> menempati posisi Index 0.",
             c: `Menu: 4 (Hapus)\nIndex: 1 (Laptop)`,
             f: () => {
                 draw(`<div class="array-rack">
@@ -565,8 +571,8 @@
             }
         },
         {
-            t: "19. DEMO: Cek Hasil Hapus",
-            d: "Sekarang Mouse ada di Index 0.",
+            t: "19. DEMO: Cek Hasil Akhir",
+            d: "Mari kita buktikan apakah Mouse benar-benar pindah. Kita pilih menu 'Tampil' lagi. <br><br>Benar! Sekarang Mouse berada di urutan ke-1 (Index 0). Gudang rapi tanpa lubang.",
             c: `Menu: 2 (Tampil)`,
             f: () => {
                 draw(`<div class="array-rack">
@@ -578,14 +584,14 @@
             }
         },
         {
-            t: "20. TAMAT",
-            d: "Selamat! Kamu sudah menguasai Struct, Pointer, dan Modular Programming.",
+            t: "20. SELESAI!",
+            d: "Selamat! Temanmu sekarang sudah belajar konsep paling sulit di C: Struct, Pointer, Array, dan Modular Programming. <br><br>Dengan visualisasi ini, semoga logika coding yang abstrak jadi terasa nyata dan mudah dimengerti.",
             c: `return 0;`,
             f: () => {
                 draw(`<div style="text-align:center">
                         <div style="font-size:3rem">🎉</div>
                         <h2 style="color:var(--green)">Misi Selesai</h2>
-                        <p>Siap untuk Tugas Besar!</p>
+                        <p>Siap untuk Coding Projek Akhir!</p>
                       </div>`);
                 term("Program finished.");
             }
