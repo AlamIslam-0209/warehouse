@@ -2,8 +2,8 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visualisasi C: Deep Dive</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Visualisasi C: Gudang Interactive</title>
     <style>
         :root {
             --bg: #0f172a;
@@ -15,8 +15,10 @@
             --green: #10b981;
         }
 
+        * { box-sizing: border-box; }
+
         body {
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
             background: var(--bg);
             color: var(--text);
             margin: 0;
@@ -25,7 +27,8 @@
             overflow: hidden;
         }
 
-        /* KIRI: MATERI */
+        /* --- LAYOUT RESPONSIVE --- */
+        /* Default (Laptop) */
         .left {
             width: 35%;
             background: var(--panel);
@@ -34,10 +37,38 @@
             flex-direction: column;
             padding: 20px;
             overflow-y: auto;
+            z-index: 10;
+        }
+        .right {
+            width: 65%;
+            position: relative;
+            background-image: radial-gradient(#334155 1px, transparent 1px);
+            background-size: 20px 20px;
+            display: flex;
+            flex-direction: column;
         }
 
-        h2 { color: var(--accent); margin-top: 0; font-size: 1.4rem; }
-        p { line-height: 1.6; font-size: 0.95rem; color: #cbd5e1; }
+        /* Mobile Layout */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .left {
+                width: 100%;
+                height: 50vh; /* Setengah layar */
+                border-right: none;
+                border-bottom: 2px solid var(--accent);
+                padding: 15px;
+            }
+            .right {
+                width: 100%;
+                height: 50vh;
+            }
+            h2 { font-size: 1.2rem; }
+            .code-block { font-size: 0.75rem; padding: 10px; }
+        }
+
+        /* --- STYLING KONTEN --- */
+        h2 { color: var(--accent); margin-top: 0; margin-bottom: 10px; }
+        p { line-height: 1.5; font-size: 0.95rem; color: #cbd5e1; margin-bottom: 15px; }
         
         .code-block {
             background: #000;
@@ -48,39 +79,32 @@
             color: #d4d4d4;
             border-left: 3px solid var(--yellow);
             white-space: pre-wrap;
-            margin: 15px 0;
+            margin-bottom: 15px;
+            overflow-x: auto;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
         }
         
         /* Syntax Colors */
-        .k { color: #569cd6; font-weight: bold; } /* keyword */
-        .t { color: #4ec9b0; } /* type */
-        .s { color: #ce9178; } /* string */
-        .c { color: #6a9955; font-style: italic; } /* comment */
-        .f { color: #dcdcaa; } /* function */
+        .k { color: #569cd6; font-weight: bold; } 
+        .t { color: #4ec9b0; } 
+        .s { color: #ce9178; } 
+        .c { color: #6a9955; font-style: italic; } 
 
         .nav {
             margin-top: auto;
             display: flex;
             gap: 10px;
-            padding-top: 20px;
         }
         button {
-            flex: 1; padding: 10px; border: none; border-radius: 4px;
+            flex: 1; padding: 12px; border: none; border-radius: 6px;
             font-weight: bold; cursor: pointer; transition: 0.2s;
+            background: #334155; color: white;
+            font-size: 1rem;
         }
-        .next { background: var(--accent); color: white; }
-        .prev { background: #334155; color: white; }
+        button.next { background: var(--accent); }
+        button:active { transform: scale(0.95); }
 
-        /* KANAN: VISUALISASI */
-        .right {
-            width: 65%;
-            position: relative;
-            background-image: radial-gradient(#334155 1px, transparent 1px);
-            background-size: 20px 20px;
-            display: flex;
-            flex-direction: column;
-        }
-
+        /* --- STYLING VISUALISASI --- */
         .stage {
             flex: 1;
             position: relative;
@@ -88,50 +112,84 @@
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            perspective: 1000px; /* Untuk efek 3D */
         }
 
         .terminal {
-            height: 150px;
+            height: 120px;
             background: #111;
             border-top: 2px solid #333;
-            padding: 15px;
+            padding: 10px;
             font-family: 'Consolas', monospace;
             color: var(--green);
             overflow-y: auto;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
+            flex-shrink: 0;
         }
 
-        /* --- VISUAL ELEMENTS --- */
+        /* Elemen Animasi */
         .box {
-            padding: 10px 20px;
-            background: var(--panel);
+            padding: 8px 12px;
+            background: #1e293b;
             border: 2px solid #555;
             border-radius: 6px;
             position: absolute;
             text-align: center;
             font-weight: bold;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            transition: all 0.5s;
+            font-size: 0.9rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            color: white;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
-        .label {
-            font-size: 0.7rem; color: #999; margin-bottom: 5px; text-transform: uppercase;
-        }
-        .val { font-size: 1.1rem; }
-
-        /* Animation Classes */
-        .highlight { border-color: var(--yellow) !important; box-shadow: 0 0 15px var(--yellow); }
-        .ghost { opacity: 0.4; border-style: dashed; }
         
-        .arrow {
-            position: absolute; height: 2px; background: var(--yellow);
-            transform-origin: 0 50%;
+        .label {
+            font-size: 0.6rem; color: #999; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px;
         }
+
+        /* Classes Khusus Animasi */
+        .anim-pop { animation: popIn 0.5s forwards; }
+        .anim-slide-in { animation: slideInRight 0.5s forwards; }
+        
+        @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes slideInRight { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* Array Container untuk Demo */
+        .array-rack {
+            display: flex; gap: 5px;
+            background: rgba(255,255,255,0.05);
+            padding: 10px; border-radius: 10px;
+            border: 1px dashed #555;
+        }
+        .rack-slot {
+            width: 70px; height: 90px;
+            border: 2px solid #444;
+            border-radius: 6px;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            font-size: 0.7rem; color: #666;
+            position: relative;
+        }
+        .rack-item {
+            width: 90%; height: 80%;
+            background: var(--accent);
+            border-radius: 4px;
+            color: white;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            font-size: 0.8rem;
+            box-shadow: 0 0 10px var(--accent);
+            z-index: 2;
+        }
+
     </style>
 </head>
 <body>
 
     <div class="left">
-        <div style="font-size:0.8rem; color:#666; margin-bottom:5px;">SLIDE <span id="s-num">1</span> / <span id="s-total">20</span></div>
+        <div style="font-size:0.7rem; color:#666; margin-bottom:5px; font-weight:bold;">
+            SLIDE <span id="s-num">1</span> / <span id="s-total">20</span>
+        </div>
         <h2 id="title">Judul</h2>
         <div id="desc">Deskripsi</div>
         <div id="code" class="code-block"></div>
@@ -147,399 +205,428 @@
     </div>
 
 <script>
+    // --- ANIMATION ENGINE (Anti-Error) ---
+    let timers = []; 
+    
+    // Fungsi menunggu aman (bisa dicancel)
+    function wait(fn, ms) {
+        const t = setTimeout(fn, ms);
+        timers.push(t);
+        return t;
+    }
+
+    // Fungsi loop aman
+    function loop(fn, ms) {
+        const t = setInterval(fn, ms);
+        timers.push(t);
+        return t;
+    }
+
+    // Bersihkan semua animasi saat pindah slide
+    function cleanup() {
+        timers.forEach(t => {
+            clearTimeout(t);
+            clearInterval(t);
+        });
+        timers = [];
+        document.getElementById('stage').innerHTML = ""; // Reset canvas
+    }
+
+    // --- DATABASE SLIDE ---
     const slides = [
-        // --- BAGIAN 1: DATA BERANTAKAN VS STRUCT ---
+        // 1-9: Materi Dasar (Sama seperti sebelumnya, tapi dioptimalkan)
         {
-            t: "1. Masalah: Variabel Biasa",
-            d: "Bayangkan kita punya gudang. Kalau pakai variabel biasa, data nama, harga, dan stok itu <b>terpisah-pisah</b> (mencar).<br>Ini bahaya! Bisa saja variabel 'Harga' tertukar dengan barang lain.",
-            c: `<span class="k">char</span> nama1[] = <span class="s">"Buku"</span>;
-<span class="k">int</span> harga1 = 5000;
-<span class="k">int</span> stok1 = 10;
-
-<span class="k">char</span> nama2[] = <span class="s">"Pena"</span>;
-<span class="k">int</span> harga2 = 2000;
-<span class="c">// Pusing kan ngaturnya?</span>`,
+            t: "1. Masalah: Data Berantakan",
+            d: "Tanpa Struct, variabel Nama, Harga, dan Stok akan <b>terpisah-pisah</b> di memori komputer.",
+            c: `<span class="k">char</span> nama1[] = <span class="s">"Buku"</span>;\n<span class="k">int</span> harga1 = 5000;\n<span class="k">int</span> stok1 = 10;`,
             f: () => {
-                draw(`
-                    <div class="box" style="top:20%; left:20%">Buku</div>
-                    <div class="box" style="top:30%; left:60%">Rp 5000</div>
-                    <div class="box" style="top:60%; left:30%">Stok: 10</div>
-                    <div class="box" style="top:10%; left:80%; border-color:red">Pena</div>
-                    <div class="box" style="top:70%; left:70%; border-color:red">Rp 2000</div>
-                    <div style="position:absolute; bottom:10%; color:#aaa;">Data berserakan di memori (Rawan Error)</div>
-                `);
-                log("Memori: Variabel dialokasikan secara acak.");
+                draw(`<div class="box anim-pop" style="top:20%; left:10%">Buku</div>
+                      <div class="box anim-pop" style="top:50%; left:60%; animation-delay:0.2s">5000</div>
+                      <div class="box anim-pop" style="top:30%; left:40%; animation-delay:0.4s">Stok: 10</div>
+                      <div class="box anim-pop" style="top:70%; left:20%; border-color:red; animation-delay:0.6s">Pena</div>`);
+                term("Memori dialokasikan secara acak.");
             }
         },
         {
-            t: "2. Solusi: Struct (Pengelompokan)",
-            d: "Struct itu seperti <b>Kardus</b>. Kita ambil data yang berserakan tadi, lalu kita masukkan ke dalam satu wadah.<br>Sekarang, kemana pun 'Buku' pergi, Harga dan Stoknya pasti ikut.",
-            c: `<span class="k">typedef struct</span> {
-    <span class="k">char</span> nama[50];
-    <span class="k">int</span> harga, stok;
-} <span class="t">Barang</span>;`,
+            t: "2. Solusi: Struct (Kardus)",
+            d: "Struct membungkus data jadi satu paket. Kemana pun 'Buku' pergi, Harga dan Stok ikut.",
+            c: `<span class="k">typedef struct</span> {\n  <span class="k">char</span> nama[50];\n  <span class="k">int</span> harga, stok;\n} <span class="t">Barang</span>;`,
             f: () => {
-                draw(`
-                    <div class="box" style="width:200px; height:150px; border-color:var(--accent);">
-                        <div class="label" style="background:var(--accent); color:white; padding:2px;">STRUCT BARANG</div>
-                        <div style="margin-top:10px; border-bottom:1px solid #444">Nama: Buku</div>
-                        <div style="margin-top:10px; border-bottom:1px solid #444">Harga: 5000</div>
-                        <div style="margin-top:10px;">Stok: 10</div>
-                    </div>
-                    <div style="position:absolute; bottom:10%; color:#aaa;">Data terbungkus rapi dalam satu blok memori</div>
-                `);
-                log("Struct didefinisikan. Data sekarang terstruktur.");
-            }
-        },
-        
-        // --- BAGIAN 2: POINTER (PASS BY VALUE vs REFERENCE) ---
-        {
-            t: "3. Fungsi Biasa (Tanpa Pointer)",
-            d: "Apa yang terjadi kalau kita kirim data ke fungsi <b>TANPA</b> pointer? <br>Komputer akan melakukan <b>FOTOKOPI</b> (Salin).<br>Fungsi hanya mengubah kertas fotokopian, data asli di gudang TIDAK BERUBAH.",
-            c: `<span class="k">void</span> ubahStok(<span class="t">Barang</span> b) {
-    b.stok = 99; <span class="c">// Cuma ubah fotokopian</span>
-}
-
-<span class="k">int</span> main() {
-    <span class="t">Barang</span> asli = {<span class="s">"Buku"</span>, 5000, 10};
-    ubahStok(asli); 
-    <span class="c">// Stok 'asli' TETAP 10!</span>
-}`,
-            f: () => {
-                draw(`
-                    <div class="box" style="left:20%; border-color:white;">
-                        <div class="label">MAIN (ASLI)</div>
-                        <div>Stok: 10</div>
-                    </div>
-                    <div style="position:absolute; font-size:2rem; color:#666">➔ COPY ➔</div>
-                    <div class="box" style="left:60%; border-color:gray; border-style:dashed;">
-                        <div class="label">FUNGSI (COPY)</div>
-                        <div style="color:var(--yellow)">Stok: 99</div>
-                    </div>
-                    <div style="position:absolute; bottom:20%; color:red;">Data asli tidak berubah!</div>
-                `);
-                log("Pass by Value: Data diduplikasi. Memboroskan memori.");
+                draw(`<div class="box anim-pop" style="width:200px; border-color:var(--accent);">
+                        <div class="label" style="background:var(--accent); color:white;">STRUCT BARANG</div>
+                        <div>Nama: Buku</div><div>Harga: 5000</div><div>Stok: 10</div>
+                      </div>`);
+                term("Data terstruktur dalam satu blok memori.");
             }
         },
         {
-            t: "4. Fungsi dengan Pointer (Pass by Reference)",
-            d: "Solusinya: Pakai <b>Pointer (*)</b>. Kita tidak kirim fotokopi, tapi kita kirim <b>ALAMAT LOKASI</b> data asli.<br>Fungsi jadi tahu letak data asli dan bisa mengubahnya langsung.",
-            c: `<span class="k">void</span> ubahStok(<span class="t">Barang</span> <span class="k">*b</span>) {
-    b->stok = 99; <span class="c">// Akses alamat, ubah isinya</span>
-}
-
-<span class="k">int</span> main() {
-    ubahStok(<span class="k">&</span>asli); <span class="c">// Kirim Alamat (&)</span>
-    <span class="c">// Stok 'asli' BERUBAH JADI 99!</span>
-}`,
+            t: "3. Salah: Pass by Value",
+            d: "Jika kirim struct ke fungsi TANPA pointer, komputer cuma membuat <b>FOTOKOPI</b>. Data asli tidak berubah.",
+            c: `<span class="k">void</span> ubah(<span class="t">Barang</span> b) {\n  b.stok = 99; <span class="c">// Cuma ubah fotokopi</span>\n}`,
             f: () => {
-                draw(`
-                    <div class="box" id="real-data" style="left:20%; border-color:var(--green);">
-                        <div class="label">MAIN (ASLI)</div>
-                        <div id="stok-val">Stok: 10</div>
-                    </div>
-                    <div class="box" style="left:60%; border-color:var(--yellow);">
-                        <div class="label">POINTER *b</div>
-                        <div style="font-size:0.8rem">Alamat: 0xFA1</div>
-                    </div>
-                    <svg style="position:absolute; width:100%; height:100%; pointer-events:none;">
-                        <line x1="60%" y1="50%" x2="30%" y2="50%" stroke="yellow" stroke-width="4" marker-end="url(#arrow)" />
-                        <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="0" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="yellow" /></marker></defs>
-                    </svg>
-                `);
-                setTimeout(() => {
-                    document.getElementById('stok-val').innerText = "Stok: 99";
-                    document.getElementById('stok-val').style.color = "#10b981";
-                    document.getElementById('real-data').classList.add('highlight');
-                    log("Pointer mengakses alamat asli -> Data berubah jadi 99.");
+                draw(`<div class="box" style="left:10%">ASLI<br>Stok: 10</div>
+                      <div class="box" style="left:60%; opacity:0.5; border-style:dashed">FOTOKOPI<br>Stok: 99</div>
+                      <div style="position:absolute; font-size:2rem; left:40%">➔</div>`);
+                term("Warning: Original data not changed.");
+            }
+        },
+        {
+            t: "4. Benar: Pass by Reference",
+            d: "Pakai <b>Pointer (*)</b> agar fungsi tau ALAMAT ASLI gudang. Kita bisa ubah data aslinya langsung.",
+            c: `<span class="k">void</span> ubah(<span class="t">Barang</span> <span class="k">*b</span>) {\n  b->stok = 99; <span class="c">// Akses alamat & ubah</span>\n}`,
+            f: () => {
+                draw(`<div class="box" id="asli" style="left:10%; border-color:var(--green)">ASLI<br>Stok: 10</div>
+                      <div class="box" style="left:60%; border-color:var(--yellow)">POINTER<br>Alamat: 0xA1</div>
+                      <svg style="position:absolute; width:100%; height:100%; pointer-events:none; top:0; left:0;">
+                          <line x1="60%" y1="50%" x2="30%" y2="50%" stroke="yellow" stroke-width="3" marker-end="url(#arrow)" />
+                          <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="0" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="yellow"/></marker></defs>
+                      </svg>`);
+                wait(() => {
+                    document.getElementById('asli').innerHTML = "ASLI<br>Stok: 99";
+                    document.getElementById('asli').classList.add('anim-pop');
+                    term("Success: Original data updated.");
                 }, 1500);
             }
         },
-
-        // --- BAGIAN 3: ARRAY & GUDANG ---
         {
-            t: "5. Membuat Gudang (Array of Struct)",
-            d: "Gudang itu isinya banyak barang. Kita buat struct baru `Inventaris` yang punya Rak (Array).",
-            c: `<span class="k">typedef struct</span> {
-    <span class="t">Barang</span> daftar[100]; <span class="c">// Rak 100 Slot</span>
-    <span class="k">int</span> jum;           <span class="c">// Hitung isi</span>
-} <span class="t">Inventaris</span>;`,
+            t: "5. Gudang = Array",
+            d: "Gudang menampung banyak barang. Kita pakai Array of Struct.",
+            c: `<span class="k">typedef struct</span> {\n  <span class="t">Barang</span> daftar[100];\n  <span class="k">int</span> jum;\n} <span class="t">Gudang</span>;`,
             f: () => {
-                draw(`
-                    <div style="display:flex; gap:10px;">
-                        <div class="box" style="position:relative; height:100px;">Rak 0<br><small>(Kosong)</small></div>
-                        <div class="box" style="position:relative; height:100px;">Rak 1<br><small>(Kosong)</small></div>
-                        <div class="box" style="position:relative; height:100px;">Rak 2<br><small>(Kosong)</small></div>
-                        <div class="box" style="position:relative; height:100px; border-style:dashed;">...</div>
-                    </div>
-                    <div style="margin-top:150px; color:var(--yellow)">jum = 0</div>
-                `);
-                log("Memori dialokasikan untuk 100 barang.");
+                draw(`<div class="array-rack anim-pop">
+                        <div class="rack-slot">0</div><div class="rack-slot">1</div><div class="rack-slot">2</div>
+                      </div>`);
+                term("Rak kosong siap diisi.");
             }
         },
-
-        // --- BAGIAN 4: MANUAL STRING HANDLING ---
         {
-            t: "6. Tantangan: String Manual",
-            d: "Kita dilarang pakai `strcpy`. Komputer itu bodoh, dia tidak bisa mindahin kata 'BUKU' sekaligus. Dia harus mindahin huruf demi huruf.",
-            c: `<span class="c">// Logika Copy Manual</span>
-<span class="k">int</span> i = 0;
-<span class="k">while</span>(asal[i] != <span class="s">'\\0'</span>) {
-    tujuan[i] = asal[i];
-    i++;
-}
-tujuan[i] = <span class="s">'\\0'</span>;`,
+            t: "6. Manual Copy String",
+            d: "Dilarang `strcpy`! Kita pindahkan huruf satu per satu (Looping).",
+            c: `<span class="k">while</span>(asal[i] != <span class="s">'\\0'</span>) {\n  tujuan[i] = asal[i];\n  i++;\n}`,
             f: () => {
-                draw(`
-                    <div style="display:flex; flex-direction:column; gap:20px; align-items:center;">
+                draw(`<div style="display:flex; flex-direction:column; gap:10px; align-items:center;">
                         <div style="display:flex; gap:5px;" id="src"></div>
-                        <div style="font-size:2rem">⬇️</div>
+                        <div style="font-size:1.5rem">⬇️</div>
                         <div style="display:flex; gap:5px;" id="dest"></div>
-                    </div>
-                `);
-                
+                      </div>`);
                 const w = "BUKU";
                 const src = document.getElementById('src');
                 const dest = document.getElementById('dest');
+                for(let c of w) src.innerHTML += `<div class="box" style="position:static; padding:5px;">${c}</div>`;
+                for(let i=0; i<w.length; i++) dest.innerHTML += `<div class="box" id="d${i}" style="position:static; padding:5px; border-style:dashed; opacity:0.3">_</div>`;
                 
-                // Setup visual
-                for(let c of w) src.innerHTML += `<div class="box" style="position:static; padding:5px 10px;">${c}</div>`;
-                for(let i=0; i<w.length; i++) dest.innerHTML += `<div class="box" id="d${i}" style="position:static; padding:5px 10px; border-style:dashed;"> </div>`;
+                let i = 0;
+                let iv = loop(() => {
+                    if(i >= w.length) { clearInterval(iv); return; }
+                    let el = document.getElementById(`d${i}`);
+                    if(el) {
+                        el.innerText = w[i];
+                        el.style.opacity = 1;
+                        el.style.borderStyle = "solid";
+                        el.style.borderColor = "var(--green)";
+                    }
+                    i++;
+                }, 500);
+            }
+        },
+        {
+            t: "7. Logika Tambah",
+            d: "Input User -> Salin String -> Masuk Array.",
+            c: `salin(g->daftar[jum].nama, input);\ng->jum++;`,
+            f: () => {
+                draw(`<div class="box anim-pop" style="left:5%; border-color:cyan; z-index:10">INPUT<br>"RAM"</div>
+                      <div class="array-rack" style="position:absolute; right:10%;">
+                        <div class="rack-slot" id="slot0">0</div><div class="rack-slot">1</div>
+                      </div>`);
+                wait(() => {
+                    const input = document.querySelector('.box');
+                    input.style.left = "60%"; // Pindah posisi visual
+                    input.style.opacity = 0; // Hilang
+                    document.getElementById('slot0').innerHTML = `<div class="rack-item anim-pop">RAM</div>`;
+                    term("RAM masuk ke Index 0");
+                }, 1000);
+            }
+        },
+        {
+            t: "8. Logika Hapus",
+            d: "Geser array kiri untuk menutupi lubang.",
+            c: `daftar[i] = daftar[i+1];`,
+            f: () => {
+                draw(`<div class="array-rack">
+                        <div class="rack-slot" style="border-color:red">A</div>
+                        <div class="rack-slot"><div class="rack-item" id="itemB">B</div></div>
+                      </div>`);
+                wait(() => {
+                    const b = document.getElementById('itemB');
+                    b.style.transform = "translateX(-75px)"; // Geser kiri visual
+                    term("Item B geser menimpa A");
+                }, 1000);
+            }
+        },
+        {
+            t: "9. Modular Structure",
+            d: "Pisahkan kode jadi 3 file agar rapi.",
+            c: `File: Header.h, Logika.c, Main.c`,
+            f: () => {
+                draw(`<div class="box anim-pop" style="left:10%">Header</div>
+                      <div class="box anim-pop" style="left:40%; animation-delay:0.2s">Logika</div>
+                      <div class="box anim-pop" style="left:70%; animation-delay:0.4s">Main</div>`);
+            }
+        },
 
-                // Animation
-                let idx = 0;
-                let iv = setInterval(() => {
-                    if(idx >= w.length) { clearInterval(iv); log("Selesai salin string."); return; }
-                    document.getElementById(`d${idx}`).innerText = w[idx];
-                    document.getElementById(`d${idx}`).style.borderStyle = "solid";
-                    document.getElementById(`d${idx}`).style.borderColor = "var(--green)";
-                    log(`Menyalin huruf '${w[idx]}' ke index ${idx}`);
-                    idx++;
+        // --- 10-20 ANIMATED SLIDES ---
+        {
+            t: "10. File: Header.h",
+            d: "Kamus Data. Hanya berisi definisi Struct & Janji Fungsi.",
+            c: `<span class="k">typedef struct</span> {...};\n<span class="k">void</span> tambah();`,
+            f: () => {
+                draw(`<div class="box" style="width:150px; height:180px; border-color:var(--yellow)">
+                        <div class="label" style="background:var(--yellow); color:black">HEADER.H</div>
+                        <div style="font-size:0.7rem; text-align:left; margin-top:10px">
+                           - Struct Barang<br>- Struct Gudang<br>- void tambah();<br>- void hapus();
+                        </div>
+                      </div>`);
+                term("Compiler mencatat definisi struktur.");
+            }
+        },
+        {
+            t: "11. File: Logika.c",
+            d: "Dapur Program. Berisi semua kode rumit loop & pointer tadi.",
+            c: `<span class="k">#include</span> "header.h"\n<span class="k">void</span> tambah() { ... }`,
+            f: () => {
+                draw(`<div class="box anim-slide-in" style="width:150px; height:180px; border-color:var(--accent)">
+                        <div class="label" style="background:var(--accent); color:black">LOGIKA.C</div>
+                        <div style="font-size:0.7rem; text-align:left; margin-top:10px">
+                           <span class="c">// Mesin</span><br>
+                           while(loop)...<br>
+                           pinter->...
+                        </div>
+                      </div>`);
+            }
+        },
+        {
+            t: "12. File: Main.c",
+            d: "Kasir/Interface. Hanya menampilkan Menu & Pilihan User.",
+            c: `<span class="k">#include</span> "header.h"\n<span class="k">int</span> main() { menu(); }`,
+            f: () => {
+                draw(`<div class="box anim-pop" style="width:150px; height:180px; border-color:var(--green)">
+                        <div class="label" style="background:var(--green); color:black">MAIN.C</div>
+                        <div style="font-size:0.7rem; text-align:left; margin-top:10px">
+                           printf("MENU");<br>
+                           scanf("%d");
+                        </div>
+                      </div>`);
+            }
+        },
+        {
+            t: "13. DEMO: Start Program",
+            d: "Program dikompilasi & dijalankan. Terminal muncul.",
+            c: `Running gudang.exe...`,
+            f: () => {
+                draw(`<div style="font-size:4rem;" class="anim-pop">🚀</div>`);
+                term("Hai, aku asisten Gudang!\n1. Cari\n2. Tampil\n3. Tambah\n4. Hapus\n5. Keluar\n> _");
+            }
+        },
+        {
+            t: "14. DEMO: Tambah (Laptop)",
+            d: "User input 'Laptop'. Data terbang masuk ke Array Index 0.",
+            c: `Menu: 3 (Tambah)\nNama: Laptop\nHarga: 5jt`,
+            f: () => {
+                draw(`<div class="array-rack" style="position:absolute; bottom:20%;">
+                        <div class="rack-slot" id="s0">0</div><div class="rack-slot">1</div><div class="rack-slot">2</div>
+                      </div>
+                      <div class="box" id="inp" style="top:10%; border-color:cyan;">Laptop</div>`);
+                term("> 3\nInput: Laptop...");
+                
+                wait(() => {
+                    const inp = document.getElementById('inp');
+                    inp.style.top = "60%"; 
+                    inp.style.left = "35%"; // Posisi slot 0 kira-kira
+                    inp.style.transform = "scale(0.5)";
+                    inp.style.opacity = 0;
+                }, 500);
+
+                wait(() => {
+                    document.getElementById('s0').innerHTML = `<div class="rack-item anim-pop" style="background:#ef4444">Laptop<br>5jt</div>`;
+                    term("[SUKSES] Laptop masuk index 0.");
+                }, 1200);
+            }
+        },
+        {
+            t: "15. DEMO: Tambah (Mouse)",
+            d: "User tambah lagi 'Mouse'. Masuk ke Array Index 1.",
+            c: `Menu: 3 (Tambah)\nNama: Mouse\nHarga: 150rb`,
+            f: () => {
+                // Gambar keadaan sebelumnya
+                draw(`<div class="array-rack" style="position:absolute; bottom:20%;">
+                        <div class="rack-slot"><div class="rack-item" style="background:#ef4444">Laptop</div></div>
+                        <div class="rack-slot" id="s1">1</div><div class="rack-slot">2</div>
+                      </div>
+                      <div class="box" id="inp2" style="top:10%; border-color:cyan;">Mouse</div>`);
+                term("> 3\nInput: Mouse...");
+
+                wait(() => {
+                    const inp = document.getElementById('inp2');
+                    inp.style.top = "60%";
+                    inp.style.left = "48%"; // Posisi slot 1
+                    inp.style.transform = "scale(0.5)";
+                    inp.style.opacity = 0;
+                }, 500);
+
+                wait(() => {
+                    document.getElementById('s1').innerHTML = `<div class="rack-item anim-pop">Mouse<br>150rb</div>`;
+                    term("[SUKSES] Mouse masuk index 1.");
+                }, 1200);
+            }
+        },
+        {
+            t: "16. DEMO: Tampilkan Semua",
+            d: "Program melakukan Looping Array untuk mencetak isi.",
+            c: `for(i=0; i<jum; i++) print...`,
+            f: () => {
+                draw(`<div class="array-rack">
+                        <div class="rack-slot" id="h0"><div class="rack-item" style="background:#ef4444">Laptop</div></div>
+                        <div class="rack-slot" id="h1"><div class="rack-item">Mouse</div></div>
+                      </div>`);
+                term("> 2 (Tampil)");
+                
+                // Animasi highlight looping
+                wait(() => {
+                    document.getElementById('h0').style.borderColor = "white";
+                    document.getElementById('h0').style.boxShadow = "0 0 15px white";
+                    term("1. Laptop | 5jt");
+                }, 500);
+                
+                wait(() => {
+                    document.getElementById('h0').style.borderColor = "#444";
+                    document.getElementById('h0').style.boxShadow = "none";
+                    document.getElementById('h1').style.borderColor = "white";
+                    document.getElementById('h1').style.boxShadow = "0 0 15px white";
+                    term("2. Mouse | 150rb");
+                }, 1500);
+            }
+        },
+        {
+            t: "17. DEMO: Cari 'Mouse'",
+            d: "Looping cek string. Laptop? Bukan. Mouse? Ketemu!",
+            c: `Menu: 1 (Cari)\nKeyword: Mouse`,
+            f: () => {
+                draw(`<div class="array-rack">
+                        <div class="rack-slot" id="c0"><div class="rack-item" style="background:#ef4444">Laptop</div></div>
+                        <div class="rack-slot" id="c1"><div class="rack-item">Mouse</div></div>
+                      </div>
+                      <div id="search-tool" class="box" style="top:10%; opacity:0">🔍</div>`);
+                
+                // Animasi Search
+                wait(() => {
+                    const s = document.getElementById('search-tool');
+                    s.style.opacity = 1;
+                    s.style.top = "60%"; s.style.left = "35%"; // Cek Laptop
+                    term("Cek Index 0: Laptop != Mouse");
+                }, 500);
+
+                wait(() => {
+                    const s = document.getElementById('search-tool');
+                    document.getElementById('c0').style.opacity = 0.3; // Bukan ini
+                    s.style.left = "48%"; // Cek Mouse
+                    term("Cek Index 1: Mouse == Mouse");
+                }, 1500);
+
+                wait(() => {
+                    document.getElementById('c1').style.borderColor = "var(--green)";
+                    document.getElementById('c1').style.boxShadow = "0 0 20px var(--green)";
+                    term("[KETEMU] Mouse ada di Index 1");
+                }, 2500);
+            }
+        },
+        {
+            t: "18. DEMO: Hapus Laptop",
+            d: "Hapus Index 0. Mouse (Index 1) harus geser ke kiri.",
+            c: `Menu: 4 (Hapus)\nIndex: 1 (Laptop)`,
+            f: () => {
+                draw(`<div class="array-rack">
+                        <div class="rack-slot" id="del0"><div class="rack-item" style="background:#ef4444">Laptop</div></div>
+                        <div class="rack-slot" id="del1"><div class="rack-item" id="movingMouse">Mouse</div></div>
+                        <div class="rack-slot"></div>
+                      </div>`);
+                term("> 4 (Hapus Laptop)");
+
+                wait(() => {
+                    document.getElementById('del0').innerHTML = ""; // Hapus visual
+                    document.getElementById('del0').style.borderColor = "red";
+                    term("Laptop dihapus...");
                 }, 800);
-            }
-        },
 
-        // --- BAGIAN 5: TAMBAH BARANG ---
-        {
-            t: "7. Fitur: Tambah Barang",
-            d: "Gabungkan konsep tadi. Kita pakai Pointer ke Gudang, lalu Salin String Manual ke dalam Rak Array.",
-            c: `<span class="k">void</span> tambah(<span class="t">Inventaris</span> *g) {
-    <span class="c">// 1. Input User</span>
-    <span class="k">char</span> namaTmp[50];
-    scanf(<span class="s">"%s"</span>, namaTmp);
-    
-    <span class="c">// 2. Salin ke Array Gudang (Manual)</span>
-    salinString(g->daftar[g->jum].nama, namaTmp);
-    
-    <span class="c">// 3. Geser Counter</span>
-    g->jum++;
-}`,
-            f: () => {
-                draw(`
-                    <div class="box" style="left:10%; border-color:cyan">User Input:<br>"RAM"</div>
-                    <div style="position:absolute; font-size:2rem;">➔</div>
-                    <div class="box" style="left:50%; border-color:var(--green)">
-                        <div class="label">GUDANG ASLI (Rak 0)</div>
-                        <div id="isi-rak" style="color:#666">KOSONG</div>
-                    </div>
-                `);
-                setTimeout(() => {
-                    document.getElementById('isi-rak').innerHTML = "Nama: RAM<br>Index: 0";
-                    document.getElementById('isi-rak').style.color = "white";
-                    log("Data tersimpan di Gudang Asli via Pointer.");
-                }, 1000);
-            }
-        },
-
-        // --- BAGIAN 6: HAPUS BARANG ---
-        {
-            t: "8. Logika Hapus (Geser Array)",
-            d: "Hapus itu sulit. Kita tidak boleh meninggalkan lubang kosong. <br>Jika index 0 dihapus, index 1 harus digeser ke kiri menimpa index 0.",
-            c: `<span class="k">void</span> hapus(<span class="t">Inventaris</span> *g, <span class="k">int</span> idx) {
-    <span class="k">for</span>(<span class="k">int</span> i = idx; i < g->jum - 1; i++) {
-        <span class="c">// Timpa kiri dengan kanan</span>
-        g->daftar[i] = g->daftar[i+1];
-    }
-    g->jum--;
-}`,
-            f: () => {
-                draw(`
-                    <div style="display:flex; gap:20px;">
-                        <div class="box" style="position:relative; border-color:red; opacity:0.5;">A (Hapus)</div>
-                        <div style="font-size:2rem">⬅️</div>
-                        <div class="box" id="b-item" style="position:relative; border-color:var(--green)">B (Geser)</div>
-                        <div class="box" style="position:relative;">C</div>
-                    </div>
-                `);
-                
-                setTimeout(() => {
-                    const b = document.getElementById('b-item');
-                    b.style.transform = "translateX(-100px)";
-                    log("Item B bergeser menimpa Item A.");
-                }, 1000);
-            }
-        },
-        
-        // --- BAGIAN 7: MODULAR ---
-        {
-            t: "9. Modular: Struktur Folder",
-            d: "Jangan tumpuk kode di satu file! Kita pisah jadi 3 file agar rapi dan profesional.",
-            c: `Project/
-├── header.h  (Kamus Data)
-├── logika.c  (Mesin/Otak)
-└── main.c    (Tampilan UI)`,
-            f: () => {
-                draw(`
-                    <div class="box" style="left:10%; height:120px; width:100px; border-color:var(--yellow)">Header.h</div>
-                    <div class="box" style="left:40%; height:120px; width:100px; border-color:var(--accent)">Logika.c</div>
-                    <div class="box" style="left:70%; height:120px; width:100px; border-color:var(--green)">Main.c</div>
-                `);
-                log("File sistem terstruktur.");
-            }
-        },
-        
-        {
-            t: "10. File 1: header.h",
-            d: "Isinya cuma definisi Struct dan daftar nama fungsi. Tidak ada kode logika di sini.",
-            c: `<span class="k">typedef struct</span> { ... } <span class="t">Barang</span>;
-<span class="k">void</span> tambah();
-<span class="k">void</span> hapus();
-<span class="c">// Cuma janji, isinya nanti.</span>`,
-            f: () => {
-                log("Header dimuat.");
+                wait(() => {
+                    const m = document.getElementById('movingMouse');
+                    m.style.transform = "translateX(-75px)"; // Animasi geser
+                    term("Mouse bergeser mengisi Index 0");
+                }, 1800);
             }
         },
         {
-            t: "11. File 2: logika.c",
-            d: "Di sini tempat kita menulis semua kode rumit tadi (Pointer, Loop Salin, Loop Geser).",
-            c: `<span class="k">#include</span> "header.h"
-<span class="k">void</span> tambah() { ... }
-<span class="k">void</span> hapus() { ... }`,
+            t: "19. DEMO: Cek Hasil Hapus",
+            d: "Sekarang Mouse ada di Index 0.",
+            c: `Menu: 2 (Tampil)`,
             f: () => {
-                log("Logika dimuat.");
+                draw(`<div class="array-rack">
+                        <div class="rack-slot"><div class="rack-item anim-pop">Mouse</div></div>
+                        <div class="rack-slot"></div>
+                        <div class="rack-slot"></div>
+                      </div>`);
+                term("> 2\n1. Mouse | 150rb\n(Sisa 1 barang)");
             }
         },
         {
-            t: "12. File 3: main.c",
-            d: "Ini wajah program kita. Isinya cuma Menu Pilihan.",
-            c: `<span class="k">int</span> main() {
-   <span class="c">// Tampilkan Menu...</span>
-   scanf(<span class="s">"%d"</span>, &pilihan);
-   <span class="k">if</span>(pilihan == 1) tambah();
-}`,
+            t: "20. TAMAT",
+            d: "Selamat! Kamu sudah menguasai Struct, Pointer, dan Modular Programming.",
+            c: `return 0;`,
             f: () => {
-                log("Main dimuat.");
-            }
-        },
-
-        // --- BAGIAN 8: HASIL AKHIR ---
-        {
-            t: "13. Demo Program: Start",
-            d: "Mari kita jalankan programnya. Tampilan awal akan seperti ini.",
-            c: `<span class="c">// Output Terminal</span>`,
-            f: () => {
-                draw(`<div style="font-size:3rem;">🚀</div>`);
-                term("Hai, aku asisten pintar Gudang mu!\n1. Cari Barang\n2. Tampilkan Barang\n3. Tambah Barang\n4. Hapus Barang\n5. Keluar\n> _");
-            }
-        },
-        {
-            t: "14. Demo: Tambah Barang",
-            d: "User memilih menu 3.",
-            c: `Menu: 3
-Nama: Laptop
-Harga: 5000000
-Stok: 5`,
-            f: () => {
-                term("> 3\nMasukkan Nama: Laptop\nMasukkan Harga: 5000000\nMasukkan Stok: 5\n[INFO] Laptop berhasil ditambahkan!");
-            }
-        },
-        {
-            t: "15. Demo: Tambah Lagi",
-            d: "Kita tambah satu barang lagi.",
-            c: `Menu: 3
-Nama: Mouse
-Harga: 150000
-Stok: 50`,
-            f: () => {
-                term("> 3\nNama: Mouse\nHarga: 150000\nStok: 50\n[INFO] Mouse berhasil ditambahkan!");
-            }
-        },
-        {
-            t: "16. Demo: Tampilkan Barang",
-            d: "User pilih menu 2 untuk melihat isi gudang (Looping Array).",
-            c: `Menu: 2`,
-            f: () => {
-                term("> 2\n=== ISI GUDANG ===\n1. Laptop | Rp 5000000 | Stok: 5\n2. Mouse | Rp 150000 | Stok: 50");
-            }
-        },
-        {
-            t: "17. Demo: Cari Barang",
-            d: "User mencari 'Mouse' (Looping Cek String Manual).",
-            c: `Menu: 1
-Cari: Mouse`,
-            f: () => {
-                term("> 1\nCari nama: Mouse\n[DITEMUKAN] Mouse ada di index ke-2\nHarga: 150000");
-            }
-        },
-        {
-            t: "18. Demo: Hapus Barang",
-            d: "User menghapus Laptop (Shift Array).",
-            c: `Menu: 4
-Hapus Index: 1`,
-            f: () => {
-                term("> 4\nHapus nomor urut: 1\n[INFO] Laptop dihapus.\n[INFO] Data dirapikan (Mouse geser ke nomor 1).");
-            }
-        },
-        {
-            t: "19. Demo: Cek Lagi",
-            d: "Pastikan Laptop hilang dan Mouse naik ke posisi 1.",
-            c: `Menu: 2`,
-            f: () => {
-                term("> 2\n=== ISI GUDANG ===\n1. Mouse | Rp 150000 | Stok: 50");
-            }
-        },
-        {
-            t: "20. Selesai",
-            d: "Kamu berhasil membuat program Inventaris Kompleks dengan Pointer, Struct, dan Modular!",
-            c: `// Program Keluar`,
-            f: () => {
-                draw(`<h1 style="color:var(--green)">TAMAT 🎉</h1>`);
-                term("Terima kasih telah menggunakan asisten gudang.");
+                draw(`<div style="text-align:center">
+                        <div style="font-size:3rem">🎉</div>
+                        <h2 style="color:var(--green)">Misi Selesai</h2>
+                        <p>Siap untuk Tugas Besar!</p>
+                      </div>`);
+                term("Program finished.");
             }
         }
     ];
 
-    // ENGINE
-    let idx = 0;
+    // --- ENGINE UTAMA ---
+    let currIdx = 0;
+
     function render() {
-        const s = slides[idx];
-        document.getElementById('s-num').innerText = idx + 1;
+        cleanup(); // STOP SEMUA ANIMASI SEBELUMNYA
+        
+        const s = slides[currIdx];
+        document.getElementById('s-num').innerText = currIdx + 1;
+        document.getElementById('s-total').innerText = slides.length;
         document.getElementById('title').innerText = s.t;
         document.getElementById('desc').innerHTML = s.d;
         document.getElementById('code').innerHTML = s.c;
-        document.getElementById('stage').innerHTML = ""; // Clear stage
+        document.getElementById('term').innerText = ">_";
+        
+        // Jalankan animasi slide ini
         s.f();
     }
 
     function draw(html) { document.getElementById('stage').innerHTML = html; }
-    function log(txt) { 
-        const t = document.getElementById('term');
-        t.innerText += "\n[SYS] " + txt; 
-        t.scrollTop = t.scrollHeight;
-    }
     function term(txt) {
         const t = document.getElementById('term');
         t.innerText = txt;
+        t.scrollTop = t.scrollHeight;
     }
 
     function move(n) {
-        if(idx+n >= 0 && idx+n < slides.length) {
-            idx += n;
+        if(currIdx + n >= 0 && currIdx + n < slides.length) {
+            currIdx += n;
             render();
         }
     }
 
+    // Start
     render();
+
 </script>
 </body>
 </html>
